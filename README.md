@@ -2,14 +2,14 @@
 
 **ChangeLog Driven Releases (CLDR)...**
 
-project status badges:
+_project status badges:_
 
 [![CI Workflow](https://github.com/bbugyi200/cldr/actions/workflows/ci.yml/badge.svg)](https://github.com/bbugyi200/cldr/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/bbugyi200/cldr/branch/master/graph/badge.svg)](https://codecov.io/gh/bbugyi200/cldr)
 [![Documentation Status](https://readthedocs.org/projects/cldr/badge/?version=latest)](https://cldr.readthedocs.io/en/latest/?badge=latest)
 [![Package Health](https://snyk.io/advisor/python/cldr/badge.svg)](https://snyk.io/advisor/python/cldr)
 
-version badges:
+_version badges:_
 
 [![Project Version](https://img.shields.io/pypi/v/cldr)](https://pypi.org/project/cldr/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/cldr)](https://pypi.org/project/cldr/)
