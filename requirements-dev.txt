@@ -24,10 +24,12 @@ binaryornot==0.4.4
     # via cookiecutter
 black==21.12b0
     # via -r requirements-dev.in
-bugyi.lib==0.10.0
+bugyi.lib==0.11.0
     # via
-    #   pylogutils
+    #   -r requirements.in
+    #   cldr
     #   python-clap
+    #   python-logrus
 bump2version==1.0.1
     # via -r requirements-dev.in
 certifi==2021.10.8
@@ -46,7 +48,7 @@ click==8.0.3
 cogapp==3.3.0
     # via -r requirements-dev.in
 colorama==0.4.4
-    # via pylogutils
+    # via python-logrus
 colored==1.4.3
     # via syrupy
 cookiecutter==1.7.3
@@ -142,7 +144,6 @@ pydantic==1.8.2
     # via
     #   -r requirements.in
     #   cldr
-    #   pylogutils
     #   python-clap
 pydocstyle[toml]==6.1.1
     # via -r requirements-dev.in
@@ -152,11 +153,6 @@ pygments==2.10.0
     # via sphinx
 pylint==2.12.2
     # via -r requirements-dev.in
-pylogutils==0.1.4
-    # via
-    #   -r requirements.in
-    #   cldr
-    #   python-clap
 pyparsing==3.0.6
     # via packaging
 pytest==6.2.5
@@ -169,7 +165,7 @@ pytest-cov==3.0.0
     # via -r requirements-dev.in
 pytest-mock==3.6.1
     # via -r requirements-dev.in
-python-clap==0.2.2
+python-clap==0.4.0
     # via
     #   -r requirements.in
     #   cldr
@@ -177,6 +173,11 @@ python-dateutil==2.8.2
     # via
     #   arrow
     #   bugyi.lib
+python-logrus==0.1.0
+    # via
+    #   -r requirements.in
+    #   cldr
+    #   python-clap
 python-result==0.2.1
     # via bugyi.lib
 python-slugify==5.0.2
@@ -223,7 +224,7 @@ sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
 structlog==21.5.0
-    # via pylogutils
+    # via python-logrus
 syrupy==1.5.0
     # via -r requirements-dev.in
 text-unidecode==1.3
@@ -274,7 +275,7 @@ zipp==3.6.0
 # The following packages are considered to be unsafe in a requirements file:
 pip==21.3.1
     # via pip-tools
-setuptools==60.0.0
+setuptools==60.0.2
     # via
     #   astroid
     #   pip-tools
