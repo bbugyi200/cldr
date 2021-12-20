@@ -255,6 +255,8 @@ typeguard==2.13.3
     # via -r requirements-dev.in
 typer==0.4.0
     # via cruft
+types-toml==0.10.1
+    # via -r requirements-dev.in
 typing-extensions==4.0.1
     # via
     #   astroid
