@@ -14,7 +14,7 @@ black
 cogapp ~= 3.3
 flake8
 isort
-mypy
+mypy != 0.920
 pydocstyle[toml]
 pylint
 
