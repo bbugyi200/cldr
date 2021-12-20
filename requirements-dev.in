@@ -8,13 +8,12 @@ tox-pyenv
 typeguard
 -e file:.#egg=cldr>=0.dev
 
-
 ### Lint
 black
 cogapp ~= 3.3
 flake8
 isort
-mypy != 0.920
+mypy != 0.920  # workaround for https://github.com/samuelcolvin/pydantic/pull/3175#issuecomment-914897604
 pydocstyle[toml]
 pylint
 
