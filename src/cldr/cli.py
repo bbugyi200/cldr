@@ -59,11 +59,13 @@ from typing import (
     cast,
 )
 
-from bugyi.lib import shell
-from bugyi.lib.types import PathLike
-import clap
+import clack
+from eris import ErisError, Err, Ok, Result
+from metaman import scriptname
+import proctor
 from pydantic.dataclasses import dataclass
 import toml
+from typist import PathLike, assert_never, literal_to_list
 
 
 # TODO(bugyi): Fix Jenkins docker so clog and bumper can both commit instead of making Jenkins do it.
@@ -138,7 +140,7 @@ new version of this project is released.
 
 
 @dataclass(frozen=True)
-class SharedConfig(clap.Config):
+class SharedConfig(clack.Config):
     command: Command
     changelog_dir: Path
 
@@ -167,7 +169,7 @@ Config = Union[BuildConfig, KindConfig, InfoConfig]
 
 
 def parse_cli_args(argv: Sequence[str]) -> Config:
-    parser = clap.Parser()
+    parser = clack.Parser()
     parser.add_argument(
         "--changelog-dir",
         type=Path,
@@ -179,7 +181,7 @@ def parse_cli_args(argv: Sequence[str]) -> Config:
         ),
     )
 
-    new_command = clap.new_command_factory(parser)
+    new_command = clack.new_command_factory(parser)
 
     build_parser = new_command(
         "build",
@@ -245,8 +247,8 @@ def parse_cli_args(argv: Sequence[str]) -> Config:
         kind_parser.add_argument(
             "-t",
             "--tags",
-            type=clap.comma_list_or_file.parse,
-            help=clap.comma_list_or_file.help(
+            type=clack.comma_list_or_file.parse,
+            help=clack.comma_list_or_file.help(
                 "Tags (e.g. a Jira issue number) to apply to the new bullet."
             ),
         )
@@ -468,9 +470,9 @@ def run_kind(args: KindConfig) -> int:
 
         git_add_cmd_list = ["git", "add"]
         git_add_cmd_list.extend(git_add_files)
-        shell.safe_popen(git_add_cmd_list).unwrap()
+        proctor.safe_popen(git_add_cmd_list).unwrap()
 
-        shell.safe_popen(
+        proctor.safe_popen(
             [
                 "git",
                 "commit",
@@ -527,7 +529,7 @@ def get_editor_cmd_list(*, line: int, column: int) -> List[str]:
 @lru_cache
 def get_user() -> str:
     git_cmd_list = ["git", "config", "--get", "user.email"]
-    out_err_r = shell.safe_popen(git_cmd_list)
+    out_err_r = proctor.safe_popen(git_cmd_list)
     if isinstance(out_err_r, Err):
         logger.warning(
             "Unable to get user's email via the '%s' command.",
@@ -543,22 +545,20 @@ def get_user() -> str:
 
 @lru_cache
 def get_branch() -> str:
-    branch, _err = shell.safe_popen(
+    branch, _err = proctor.safe_popen(
         ["git", "branch", "--show-current"]
     ).unwrap()
     return branch
 
 
-def get_version(line: str) -> BResult[str]:
+def get_version(line: str) -> Result[str, ErisError]:
     pttrn = r"^##[ ]*\[(?P<version>.*)\]"
     if m := re.search(pttrn, line):
         return Ok(m.group("version"))
     else:
-        return BErr(
+        return Err(
             "This regular expression does not match this line.\n\nPATTERN:"
-            " %r\nLINE: %r",
-            pttrn,
-            line,
+            f" {pttrn!r}\nLINE: {line!r}"
         )
 
 
@@ -588,7 +588,7 @@ class Bullet:
     @classmethod
     def from_string(
         cls, line: str, changelog_dir: PathLike = "changelog"
-    ) -> BResult["Bullet"]:
+    ) -> Result["Bullet"]:
         changelog_dir = Path(changelog_dir)
 
         _TAG_PATTERN = "(?:{})".format(
@@ -605,7 +605,7 @@ class Bullet:
         if m := re.match(BULLET_PATTERN, line):
             kind = cast(Kind, m.group("kind").lower())
             if kind not in KIND_TO_SECTION_MAP:
-                return BErr(
+                return Err(
                     f"An invalid bullet kind ({kind!r}) was detected in the"
                     f" following line:\n\n{line!r}\n\nUse one of the following"
                     " supported bullet types instead:"
@@ -621,7 +621,7 @@ class Bullet:
                         tags.append(tag_type(raw_tag))
                         break
                 else:
-                    return BErr(
+                    return Err(
                         "The following tag does not match any known tag"
                         f" types: {raw_tag!r}"
                     )
@@ -636,7 +636,7 @@ class Bullet:
                 )
             )
         else:
-            return BErr(
+            return Err(
                 f"{BULLET_EXPLANATION}\n\nThe following line does not match"
                 f" the required form: {line!r}"
             )
@@ -763,14 +763,14 @@ class RelativeCommitTag(TagMixin):
             f" file?\n\n    bullet={bullet}"
         )
 
-        out, _err = shell.safe_popen(
+        out, _err = proctor.safe_popen(
             ["git", "blame", str(bullet_file)]
         ).unwrap()
         blame_line = out.split("\n")[bullet_line_number]
         blame_commit_hash = blame_line.split()[0]
 
         git_log_offset = int(self.tag[1:])
-        out, _err = shell.safe_popen(
+        out, _err = proctor.safe_popen(
             [
                 "git",
                 "log",
@@ -804,7 +804,7 @@ def _add_tag_to_paren_group(bullet_line: str, tag: str) -> str:
 
 def read_bullets_from_changelog_dir(
     changelog_dir: PathLike,
-) -> BResult[Dict[Kind, List[Bullet]]]:
+) -> Result[Dict[Kind, List[Bullet]]]:
     """
     Arguments:
         @changelog_dir: Path to the directory which contains the bullet files
@@ -814,12 +814,12 @@ def read_bullets_from_changelog_dir(
         Ok(kind_to_bullets_map) if one or more bullets were consumed
         successfully by this function.
             OR
-        Err(BugyiError), otherwise.
+        Err(ErisError), otherwise.
     """
     changelog_dir = Path(changelog_dir)
 
     if not changelog_dir.exists():
-        return BErr("The changelog directory does not exist.")
+        return Err("The changelog directory does not exist.")
 
     bullet_lines: Iterable[str] = []
     for path in iter_bullet_files(changelog_dir):
@@ -827,7 +827,7 @@ def read_bullets_from_changelog_dir(
         bullet_lines = it.chain(bullet_lines, path.read_text().split("\n"))
 
     if not bullet_lines:
-        return BErr(
+        return Err(
             "No markdown files were found in the 'changelog' directory (not"
             " including the README.md file)."
         )
@@ -841,7 +841,7 @@ def read_bullets_from_changelog_dir(
         bullet_r = Bullet.from_string(line, changelog_dir)
         if isinstance(bullet_r, Err):
             e = bullet_r.err()
-            return BErr(
+            return Err(
                 "There was a problem parsing one of the changelog"
                 f" bullets:\n\n{line!r}",
                 cause=e,
@@ -881,12 +881,12 @@ def jira_org() -> Optional[str]:
 
 
 @lru_cache
-def _get_conf(name: str = None) -> BResult[Dict[str, Any]]:
+def _get_conf(name: str = None) -> Result[Dict[str, Any]]:
     if name is None:
         name = scriptname().replace(".py", "")
 
-    def error(emsg: str) -> Err[BugyiError]:
-        return BErr(
+    def error(emsg: str) -> Err[ErisError]:
+        return Err(
             "{}\n\nIn order to use the 'clog' script, this project's"
             " pyproject.toml file must have a [tool.clog] section that defines"
             " a 'github_repo' option and (optionally) a 'jira_org' option."
@@ -915,6 +915,6 @@ def _get_conf(name: str = None) -> BResult[Dict[str, Any]]:
     return Ok(result)
 
 
-main = clap.main_factory(parse_cli_args, run)
+main = clack.main_factory(parse_cli_args, run)
 if __name__ == "__main__":
     sys.exit(main())
