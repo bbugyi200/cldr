@@ -28,8 +28,11 @@ bolton-clack==0.1.0
     # via
     #   -r requirements.in
     #   cldr
-bolton-eris==0.2.0
-    # via bolton-proctor
+bolton-eris==0.2.1
+    # via
+    #   -r requirements.in
+    #   bolton-proctor
+    #   cldr
 bolton-ion==0.1.0
     # via bolton-eris
 bolton-logrus==0.1.0
