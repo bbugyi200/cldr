@@ -59,20 +59,9 @@ from typing import (
     cast,
 )
 
-from bloomberg.compliance.sre.lib import cli, shell
-from bloomberg.compliance.sre.lib.errors import (
-    BErr,
-    BloombergError,
-    BResult,
-    Err,
-    Ok,
-)
-from bloomberg.compliance.sre.lib.meta import scriptname
-from bloomberg.compliance.sre.lib.types import (
-    PathLike,
-    assert_never,
-    literal_to_list,
-)
+from bugyi.lib import shell
+from bugyi.lib.types import PathLike
+import clap
 from pydantic.dataclasses import dataclass
 import toml
 
@@ -149,20 +138,20 @@ new version of this project is released.
 
 
 @dataclass(frozen=True)
-class SharedArguments(cli.Arguments):
+class SharedConfig(clap.Config):
     command: Command
     changelog_dir: Path
 
 
 @dataclass(frozen=True)
-class BuildArguments(SharedArguments):
+class BuildConfig(SharedConfig):
     changelog: Path
     in_place: bool
     new_version: str
 
 
 @dataclass(frozen=True)
-class KindArguments(SharedArguments):
+class KindConfig(SharedConfig):
     body: Optional[str]
     commit_changes: bool
     tags: Optional[List[str]]
@@ -170,15 +159,15 @@ class KindArguments(SharedArguments):
 
 
 @dataclass(frozen=True)
-class InfoArguments(SharedArguments):
+class InfoConfig(SharedConfig):
     pass
 
 
-Arguments = Union[BuildArguments, KindArguments, InfoArguments]
+Config = Union[BuildConfig, KindConfig, InfoConfig]
 
 
-def parse_cli_args(argv: Sequence[str]) -> Arguments:
-    parser = cli.ArgumentParser()
+def parse_cli_args(argv: Sequence[str]) -> Config:
+    parser = clap.Parser()
     parser.add_argument(
         "--changelog-dir",
         type=Path,
@@ -190,7 +179,7 @@ def parse_cli_args(argv: Sequence[str]) -> Arguments:
         ),
     )
 
-    new_command = cli.new_command_factory(parser)
+    new_command = clap.new_command_factory(parser)
 
     build_parser = new_command(
         "build",
@@ -256,8 +245,8 @@ def parse_cli_args(argv: Sequence[str]) -> Arguments:
         kind_parser.add_argument(
             "-t",
             "--tags",
-            type=cli.comma_list_or_file.parse,
-            help=cli.comma_list_or_file.help(
+            type=clap.comma_list_or_file.parse,
+            help=clap.comma_list_or_file.help(
                 "Tags (e.g. a Jira issue number) to apply to the new bullet."
             ),
         )
@@ -277,7 +266,7 @@ def parse_cli_args(argv: Sequence[str]) -> Arguments:
 
     cmd: Command = args.command
     if cmd == "build":
-        return BuildArguments(**kwargs)
+        return BuildConfig(**kwargs)
     elif (
         cmd == "add"
         or cmd == "chg"
@@ -287,25 +276,25 @@ def parse_cli_args(argv: Sequence[str]) -> Arguments:
         or cmd == "rm"
         or cmd == "sec"
     ):
-        return KindArguments(**kwargs)
+        return KindConfig(**kwargs)
     elif cmd == "info":
-        return InfoArguments(**kwargs)
+        return InfoConfig(**kwargs)
     else:
         assert_never(cmd)
 
 
-def run(args: Arguments) -> int:
-    if isinstance(args, BuildArguments):
+def run(args: Config) -> int:
+    if isinstance(args, BuildConfig):
         return run_build(args)
-    elif isinstance(args, KindArguments):
+    elif isinstance(args, KindConfig):
         return run_kind(args)
-    elif isinstance(args, InfoArguments):
+    elif isinstance(args, InfoConfig):
         return run_info(args)
     else:
         assert_never(args)
 
 
-def run_build(args: BuildArguments) -> int:
+def run_build(args: BuildConfig) -> int:
     UNRELEASED_TITLE = "## [Unreleased]"
 
     unreleased_section_start: Optional[int] = None
@@ -414,7 +403,7 @@ def run_build(args: BuildArguments) -> int:
     return 0
 
 
-def run_kind(args: KindArguments) -> int:
+def run_kind(args: KindConfig) -> int:
     if not args.changelog_dir.exists():
         logger.info("Creating %s directory...", args.changelog_dir)
         args.changelog_dir.mkdir(parents=True)
@@ -501,7 +490,7 @@ def run_kind(args: KindArguments) -> int:
     return 0
 
 
-def run_info(args: InfoArguments) -> int:
+def run_info(args: InfoConfig) -> int:
     data: Dict[str, Any] = {}
 
     data["bullets"] = []
@@ -825,7 +814,7 @@ def read_bullets_from_changelog_dir(
         Ok(kind_to_bullets_map) if one or more bullets were consumed
         successfully by this function.
             OR
-        Err(BloombergError), otherwise.
+        Err(BugyiError), otherwise.
     """
     changelog_dir = Path(changelog_dir)
 
@@ -896,7 +885,7 @@ def _get_conf(name: str = None) -> BResult[Dict[str, Any]]:
     if name is None:
         name = scriptname().replace(".py", "")
 
-    def error(emsg: str) -> Err[BloombergError]:
+    def error(emsg: str) -> Err[BugyiError]:
         return BErr(
             "{}\n\nIn order to use the 'clog' script, this project's"
             " pyproject.toml file must have a [tool.clog] section that defines"
@@ -926,6 +915,6 @@ def _get_conf(name: str = None) -> BResult[Dict[str, Any]]:
     return Ok(result)
 
 
-main = cli.main_factory(parse_cli_args, run)
+main = clap.main_factory(parse_cli_args, run)
 if __name__ == "__main__":
     sys.exit(main())
