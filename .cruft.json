@@ -1,5 +1,5 @@
 {
-  "template": "https://github.com/bbugyi200/cc-python",
+  "template": "https://github.com/python-boltons/cc-python",
   "commit": "df020b0e50bd33006ed920e271a27554cefab66f",
   "checkout": null,
   "context": {
@@ -14,7 +14,7 @@
       "read_the_docs_domain": "cldr",
       "package_description": "ChangeLog Driven Releases (CLDR)...",
       "package_type": "application",
-      "_template": "https://github.com/bbugyi200/cc-python",
+      "_template": "https://github.com/python-boltons/cc-python",
       "package_path": "cldr",
       "package_module": "cldr"
     }
