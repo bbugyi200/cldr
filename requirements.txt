@@ -4,31 +4,32 @@
 #
 #    "make update-requirements"
 #
-bugyi.lib==0.11.0
-    # via
-    #   -r requirements.in
-    #   python-clap
-    #   python-logrus
-colorama==0.4.4
-    # via python-logrus
-pydantic==1.8.2
-    # via
-    #   -r requirements.in
-    #   python-clap
-python-clap==0.4.0
+bolton-clack==0.1.0
     # via -r requirements.in
-python-dateutil==2.8.2
-    # via bugyi.lib
-python-logrus==0.1.0
+bolton-eris==0.2.0
+    # via bolton-proctor
+bolton-ion==0.1.0
+    # via bolton-eris
+bolton-logrus==0.1.0
     # via
     #   -r requirements.in
-    #   python-clap
-python-result==0.2.1
-    # via bugyi.lib
-six==1.16.0
-    # via python-dateutil
+    #   bolton-clack
+bolton-metaman==0.1.1
+    # via
+    #   bolton-clack
+    #   bolton-eris
+    #   bolton-logrus
+bolton-proctor==0.2.0
+    # via -r requirements.in
+bolton-typist==0.1.1
+    # via
+    #   -r requirements.in
+    #   bolton-clack
+    #   bolton-eris
+pydantic==1.8.2
+    # via bolton-clack
 structlog==21.5.0
-    # via python-logrus
+    # via bolton-logrus
 toml==0.10.2
     # via -r requirements.in
 typing-extensions==4.0.1

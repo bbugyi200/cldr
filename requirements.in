@@ -1,5 +1,5 @@
-bugyi.lib ~= 0.11.0
-pydantic ~= 1.8
-python-clap ~= 0.4.0
-python-logrus ~= 0.1.0
+bolton-clack ~= 0.1.0
+bolton-logrus ~= 0.1.0
+bolton-proctor ~= 0.2.0
+bolton-typist ~= 0.1.1
 toml ~= 0.10.2
