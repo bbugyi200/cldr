@@ -40,7 +40,7 @@ Here is an example of a valid bullet which references the CSRE-103 Jira issue:
 `* add(csre-103): Added the cldr.py script.`
 """
 
-_CLDR_URL = "https://bbgithub.dev.bloomberg.com/ComplianceSRE/tools/blob/master/src/bloomberg/compliance/sre/tools/cldr.py"
+_CLDR_URL = "https://github.com/bbugyi200/cldr"
 UNRELEASED_BEGIN = f"""\
 The unreleased section is unique in that we do not add content to it directly.
 Instead, developers of this project add specially formatted bullets to files of

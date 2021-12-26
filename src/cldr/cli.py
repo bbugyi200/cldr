@@ -62,14 +62,19 @@ from eris import ErisError, Err, Ok, Result
 from logrus import Logger
 import proctor
 from pydantic.dataclasses import dataclass
-import toml
 from typist import PathLike, literal_to_list
 
-from ._config import BuildConfig, Config, InfoConfig, KindConfig
+from ._config import (
+    BuildConfig,
+    Config,
+    InfoConfig,
+    KindConfig,
+    github_repo,
+    jira_org,
+)
 from ._constants import (
     BULLET_EXPLANATION,
     KIND_TO_SECTION_MAP,
-    PROJECT_NAME,
     README_CONTENTS,
     UNRELEASED_BEGIN,
     Kind,
@@ -690,59 +695,6 @@ def iter_bullet_files(changelog_dir: PathLike) -> Iterator[Path]:
     for path in changelog_dir.glob("*.md"):
         if path.stem != "README":
             yield path
-
-
-@lru_cache
-def github_repo() -> str:
-    """TODO"""
-    conf = _get_conf().unwrap()
-    result: Optional[str] = conf.get("github_repo")
-    assert result is not None
-    return result
-
-
-@lru_cache
-def jira_org() -> Optional[str]:
-    """TODO"""
-    conf = _get_conf().unwrap()
-
-    result: Optional[str] = conf.get("jira_org")
-    if result is None:
-        return None
-    else:
-        return result.upper()
-
-
-@lru_cache
-def _get_conf() -> Result[Dict[str, Any], ErisError]:
-    def error(emsg: str) -> Err[Any, ErisError]:
-        return Err(
-            "{}\n\nIn order to use the 'cldr' script, this project's"
-            " pyproject.toml file must have a [tool.cldr] section that defines"
-            " a 'github_repo' option and (optionally) a 'jira_org' option."
-            .format(emsg)
-        )
-
-    pyproject_toml = Path("pyproject.toml")
-    if pyproject_toml.exists():
-        conf = toml.loads(pyproject_toml.read_text())
-    else:
-        return error("The pyproject.toml file does not exist.")
-
-    result = conf.get("tool", {}).get(PROJECT_NAME)
-    if result is None:
-        return error(
-            f"The pyproject.toml file does not contain a [tool.{PROJECT_NAME}]"
-            " section."
-        )
-
-    if result.get("github_repo") is None:
-        return error(
-            "The [tool.cldr] section in the pyproject.toml file does not set"
-            " the 'github_repo' option."
-        )
-
-    return Ok(result)
 
 
 main = clack.main_factory(run, Config)
