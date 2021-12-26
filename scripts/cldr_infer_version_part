@@ -17,8 +17,6 @@
 #     * Else: 'none'
 ###################################################################################################
 
-source ../lib/bugyi.sh
-
 function run() {
     if [[ "${1}" == "-d" || "${1}" == "--debug" ]]; then
         shift
@@ -58,11 +56,11 @@ function run() {
         success_msg="Found no 'add', 'chg', or 'rm' changelog bullets."
     else
         result="none"
-        wmsg "No changelog bullets found. Recommending that no release be made (i.e. do not bump any part of the version)."
+        log::warn "No changelog bullets found. Recommending that no release be made (i.e. do not bump any part of the version)."
     fi
 
     if [[ -n "${success_msg}" ]]; then
-        imsg "%s. Recommending that we bump the '%s' version part." \
+        log::info "%s. Recommending that we bump the '%s' version part." \
             "${success_msg}" \
             "${result}"
     fi
