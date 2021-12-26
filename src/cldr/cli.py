@@ -241,7 +241,6 @@ class Config(clack.Config):
         kwargs = vars(args)
 
         cmd: Command = args.command
-        del args.command
         if cmd == "build":
             return BuildConfig(**kwargs)
         elif (
