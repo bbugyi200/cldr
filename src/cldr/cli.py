@@ -69,11 +69,6 @@ import toml
 from typist import PathLike, assert_never, literal_to_list
 
 
-# TODO(bugyi): Add 'edit' sub-command that opens this branches' bullet file in editor.
-# TODO(bugyi): Define markdown links at the bottom of section instead of inline.
-# TODO(bugyi): The changelog/README.md file should be updated on `clog build -i`, not after `clog <KIND>`.
-# TODO(bugyi): Support setup.cfg and .clogrc (will later be .cldrrc) config files in addition to pyproject.toml.
-# TODO(bugyi): Relative commit tag (e.g. `c1`) should use first commit (instead of last commit) that added that bullet.
 logger = Logger(__name__)
 
 # The TAG_TYPES list is populated later by the `register_tag` decorator.
@@ -139,11 +134,14 @@ new version of this project is released.
 
 
 class Config(clack.Config):
+    """TODO"""
+
     command: Command
     changelog_dir: Path
 
     @classmethod
     def from_cli_args(cls, argv: Sequence[str]) -> Config:
+        """TODO"""
         parser = clack.Parser()
         parser.add_argument(
             "--changelog-dir",
@@ -263,12 +261,16 @@ class Config(clack.Config):
 
 
 class BuildConfig(Config):
+    """TODO"""
+
     changelog: Path
     in_place: bool
     new_version: str
 
 
 class KindConfig(Config):
+    """TODO"""
+
     body: Optional[str]
     commit_changes: bool
     tags: Optional[List[str]]
@@ -276,10 +278,11 @@ class KindConfig(Config):
 
 
 class InfoConfig(Config):
-    pass
+    """TODO"""
 
 
 def run(args: Config) -> int:
+    """TODO"""
     if isinstance(args, BuildConfig):
         return run_build(args)
     elif isinstance(args, KindConfig):
@@ -291,6 +294,7 @@ def run(args: Config) -> int:
 
 
 def run_build(args: BuildConfig) -> int:
+    """TODO"""
     UNRELEASED_TITLE = "## [Unreleased]"
 
     unreleased_section_start: Optional[int] = None
@@ -400,6 +404,7 @@ def run_build(args: BuildConfig) -> int:
 
 
 def run_kind(args: KindConfig) -> int:
+    """TODO"""
     if not args.changelog_dir.exists():
         logger.info("Creating %s directory...", args.changelog_dir)
         args.changelog_dir.mkdir(parents=True)
@@ -487,6 +492,7 @@ def run_kind(args: KindConfig) -> int:
 
 
 def run_info(args: InfoConfig) -> int:
+    """TODO"""
     data: Dict[str, Any] = {}
 
     data["bullets"] = []
@@ -512,6 +518,7 @@ def run_info(args: InfoConfig) -> int:
 
 
 def get_editor_cmd_list(*, line: int, column: int) -> List[str]:
+    """TODO"""
     editor = os.environ.get("EDITOR", "vim")
     cmd_list = [editor]
     if "vim" in editor:
@@ -522,6 +529,7 @@ def get_editor_cmd_list(*, line: int, column: int) -> List[str]:
 
 @lru_cache
 def get_user() -> str:
+    """TODO"""
     git_cmd_list = ["git", "config", "--get", "user.email"]
     out_err_r = proctor.safe_popen(git_cmd_list)
     if isinstance(out_err_r, Err):
@@ -539,6 +547,7 @@ def get_user() -> str:
 
 @lru_cache
 def get_branch() -> str:
+    """TODO"""
     branch, _err = proctor.safe_popen(
         ["git", "branch", "--show-current"]
     ).unwrap()
@@ -546,6 +555,7 @@ def get_branch() -> str:
 
 
 def get_version(line: str) -> Result[str, ErisError]:
+    """TODO"""
     pttrn = r"^##[ ]*\[(?P<version>.*)\]"
     if m := re.search(pttrn, line):
         return Ok(m.group("version"))
@@ -557,6 +567,8 @@ def get_version(line: str) -> Result[str, ErisError]:
 
 
 class Tag(Protocol):
+    """TODO"""
+
     regexp: str
     tag: str
 
@@ -564,15 +576,19 @@ class Tag(Protocol):
         pass
 
     def transform_bullet(self, bullet: "Bullet", bullet_line: str) -> str:
-        pass
+        """TODO"""
 
 
 class BulletConfig:
+    """TODO"""
+
     arbitrary_types_allowed = True
 
 
 @dataclass(frozen=True, config=BulletConfig)
 class Bullet:
+    """TODO"""
+
     line: str
     changelog_dir: Path
     kind: Kind
@@ -583,6 +599,7 @@ class Bullet:
     def from_string(
         cls, line: str, changelog_dir: PathLike = "changelog"
     ) -> Result["Bullet", ErisError]:
+        """TODO"""
         changelog_dir = Path(changelog_dir)
 
         _TAG_PATTERN = "(?:{})".format(
@@ -636,6 +653,7 @@ class Bullet:
             )
 
     def to_string(self) -> str:
+        """TODO"""
         result = f"* {self.body}"
 
         for tag in self.tags:
@@ -646,21 +664,27 @@ class Bullet:
 
 
 class TagMixin(ABC):
+    """TODO"""
+
     def __init__(self, tag: str) -> None:
         self.tag = tag
 
 
 def register_tag(tag_type: Type[Tag]) -> Type[Tag]:
+    """TODO"""
     TAG_TYPES.append(tag_type)
     return tag_type
 
 
 @register_tag
 class BreakingChangeTag(TagMixin):
+    """TODO"""
+
     regexp = r"bc"
 
     @staticmethod
     def transform_bullet(bullet: Bullet, bullet_line: str) -> str:
+        """TODO"""
         allowed_kinds: List[Kind] = ["chg", "rm"]
         if bullet.kind not in allowed_kinds:
             raise RuntimeError(
@@ -698,9 +722,12 @@ def _github_tag_transform_bullet(
 
 @register_tag
 class GithubIssue(TagMixin):
+    """TODO"""
+
     regexp = _github_tag_regexp("#")
 
     def transform_bullet(self, _bullet: Bullet, bullet_line: str) -> str:
+        """TODO"""
         return _github_tag_transform_bullet(
             "#", "issues", self.tag, bullet_line
         )
@@ -708,9 +735,12 @@ class GithubIssue(TagMixin):
 
 @register_tag
 class GithubPullRequest(TagMixin):
+    """TODO"""
+
     regexp = _github_tag_regexp("!")
 
     def transform_bullet(self, _bullet: Bullet, bullet_line: str) -> str:
+        """TODO"""
         return _github_tag_transform_bullet(
             "!", "pull", self.tag, bullet_line, prefix="PR:"
         )
@@ -718,9 +748,12 @@ class GithubPullRequest(TagMixin):
 
 @register_tag
 class JiraIssue(TagMixin):
+    """TODO"""
+
     regexp = r"(?:[A-Za-z]+-)?[1-9][0-9]*"
 
     def transform_bullet(self, _bullet: Bullet, bullet_line: str) -> str:
+        """TODO"""
         tag = self.tag
         if tag[0].isdigit():
             if jira_org() is None:
@@ -739,9 +772,12 @@ class JiraIssue(TagMixin):
 
 @register_tag
 class RelativeCommitTag(TagMixin):
+    """TODO"""
+
     regexp = r"c(?:0|[1-9][0-9]*)"
 
     def transform_bullet(self, bullet: Bullet, bullet_line: str) -> str:
+        """TODO"""
         bullet_file: Optional[Path] = None
         bullet_line_number: Optional[int] = None
 
@@ -847,6 +883,7 @@ def read_bullets_from_changelog_dir(
 
 
 def iter_bullet_files(changelog_dir: PathLike) -> Iterator[Path]:
+    """TODO"""
     changelog_dir = Path(changelog_dir)
 
     for path in changelog_dir.glob("*.md"):
@@ -856,6 +893,7 @@ def iter_bullet_files(changelog_dir: PathLike) -> Iterator[Path]:
 
 @lru_cache
 def github_repo() -> str:
+    """TODO"""
     conf = _get_conf().unwrap()
     result: Optional[str] = conf.get("github_repo")
     assert result is not None
@@ -864,6 +902,7 @@ def github_repo() -> str:
 
 @lru_cache
 def jira_org() -> Optional[str]:
+    """TODO"""
     conf = _get_conf().unwrap()
 
     result: Optional[str] = conf.get("jira_org")
