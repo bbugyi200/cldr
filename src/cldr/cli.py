@@ -31,13 +31,14 @@ Examples:
     clog info
 """
 
+from __future__ import annotations
+
 from abc import ABC
 from collections import OrderedDict, defaultdict
 import datetime as dt
 from functools import lru_cache
 import itertools as it
 import json
-import logging
 from operator import attrgetter
 import os
 from pathlib import Path
@@ -55,12 +56,12 @@ from typing import (
     Protocol,
     Sequence,
     Type,
-    Union,
     cast,
 )
 
 import clack
 from eris import ErisError, Err, Ok, Result
+from logrus import Logger
 from metaman import scriptname
 import proctor
 from pydantic.dataclasses import dataclass
@@ -68,14 +69,12 @@ import toml
 from typist import PathLike, assert_never, literal_to_list
 
 
-# TODO(bugyi): Fix Jenkins docker so clog and bumper can both commit instead of making Jenkins do it.
 # TODO(bugyi): Add 'edit' sub-command that opens this branches' bullet file in editor.
 # TODO(bugyi): Define markdown links at the bottom of section instead of inline.
 # TODO(bugyi): The changelog/README.md file should be updated on `clog build -i`, not after `clog <KIND>`.
 # TODO(bugyi): Support setup.cfg and .clogrc (will later be .cldrrc) config files in addition to pyproject.toml.
 # TODO(bugyi): Relative commit tag (e.g. `c1`) should use first commit (instead of last commit) that added that bullet.
-logging.root.handlers.clear()  # HACK: Remove after https://bbgithub.dev.bloomberg.com/ComplianceSRE/python-libs/pull/15 is merged in.
-logger = logging.getLogger(__name__)
+logger = Logger(__name__)
 
 # The TAG_TYPES list is populated later by the `register_tag` decorator.
 TAG_TYPES: List[Type["Tag"]] = []
@@ -139,150 +138,145 @@ new version of this project is released.
 """
 
 
-@dataclass(frozen=True)
-class SharedConfig(clack.Config):
+class Config(clack.Config):
     command: Command
     changelog_dir: Path
 
+    @classmethod
+    def from_cli_args(cls, argv: Sequence[str]) -> Config:
+        parser = clack.Parser()
+        parser.add_argument(
+            "--changelog-dir",
+            type=Path,
+            default=Path("changelog"),
+            help=(
+                "Can be used to explicitly specify the path of the changelog"
+                " directory where unreleased change bullets are stored."
+                " Defaults to '%(default)s'."
+            ),
+        )
 
-@dataclass(frozen=True)
-class BuildConfig(SharedConfig):
+        new_command = clack.new_command_factory(parser)
+
+        build_parser = new_command(
+            "build",
+            help=(
+                "Use the bullets found in the changelog directory to generate"
+                " a new release section."
+            ),
+        )
+        build_parser.add_argument(
+            "--changelog",
+            type=Path,
+            default=Path("CHANGELOG.md"),
+            help="Path to the changelog file. Defaults to '%(default)s'.",
+        )
+        build_parser.add_argument(
+            "-V",
+            "--new-version",
+            required=True,
+            help="The newest project version.",
+        )
+        build_parser.add_argument(
+            "-i",
+            "--in-place",
+            action="store_true",
+            help=(
+                "Change the changelog file in-place instead of outputing the"
+                " new changelog contents to STDOUT."
+            ),
+        )
+
+        new_command(
+            "info", help="Print internal state to standard output as JSON."
+        )
+
+        for kind in cast(List[Kind], literal_to_list(Kind)):
+            kind_parser = new_command(
+                kind,
+                help=(
+                    f"Add a new bullet to the '{KIND_TO_SECTION_MAP[kind]}'"
+                    " section of the next release."
+                ),
+            )
+            kind_parser.add_argument(
+                "body",
+                default=None,
+                nargs="?",
+                help=(
+                    "The contents of the new bullet. If no body is provided,"
+                    " the bullet file will be opened using your system's"
+                    " default editor so you can provide one."
+                ),
+            )
+            kind_parser.add_argument(
+                "-n",
+                "--no-commit",
+                dest="commit_changes",
+                action="store_false",
+                help=(
+                    "Specify this option if you do NOT want to commit this new"
+                    " bullet using git."
+                ),
+            )
+            kind_parser.add_argument(
+                "-t",
+                "--tags",
+                type=clack.comma_list_or_file.parse,
+                help=clack.comma_list_or_file.help(
+                    "Tags (e.g. a Jira issue number) to apply to the new"
+                    " bullet."
+                ),
+            )
+            kind_parser.add_argument(
+                "-b",
+                "--bullet-file-name",
+                default=None,
+                help=(
+                    "The basename of the bullet file which we will add this"
+                    " changelog bullet to. Defaults to a bullet filename of"
+                    " the form USER@BRANCH."
+                ),
+            )
+
+        args = parser.parse_args(argv[1:])
+        kwargs = vars(args)
+
+        cmd: Command = args.command
+        del args.command
+        if cmd == "build":
+            return BuildConfig(**kwargs)
+        elif (
+            cmd == "add"
+            or cmd == "chg"
+            or cmd == "dep"
+            or cmd == "fix"
+            or cmd == "misc"
+            or cmd == "rm"
+            or cmd == "sec"
+        ):
+            return KindConfig(**kwargs)
+        elif cmd == "info":
+            return InfoConfig(**kwargs)
+        else:
+            assert_never(cmd)
+
+
+class BuildConfig(Config):
     changelog: Path
     in_place: bool
     new_version: str
 
 
-@dataclass(frozen=True)
-class KindConfig(SharedConfig):
+class KindConfig(Config):
     body: Optional[str]
     commit_changes: bool
     tags: Optional[List[str]]
     bullet_file_name: Optional[str]
 
 
-@dataclass(frozen=True)
-class InfoConfig(SharedConfig):
+class InfoConfig(Config):
     pass
-
-
-Config = Union[BuildConfig, KindConfig, InfoConfig]
-
-
-def parse_cli_args(argv: Sequence[str]) -> Config:
-    parser = clack.Parser()
-    parser.add_argument(
-        "--changelog-dir",
-        type=Path,
-        default=Path("changelog"),
-        help=(
-            "Can be used to explicitly specify the path of the changelog"
-            " directory where unreleased change bullets are stored. Defaults"
-            " to '%(default)s'."
-        ),
-    )
-
-    new_command = clack.new_command_factory(parser)
-
-    build_parser = new_command(
-        "build",
-        help=(
-            "Use the bullets found in the changelog directory to generate a"
-            " new release section."
-        ),
-    )
-    build_parser.add_argument(
-        "--changelog",
-        type=Path,
-        default=Path("CHANGELOG.md"),
-        help="Path to the changelog file. Defaults to '%(default)s'.",
-    )
-    build_parser.add_argument(
-        "-V",
-        "--new-version",
-        required=True,
-        help="The newest project version.",
-    )
-    build_parser.add_argument(
-        "-i",
-        "--in-place",
-        action="store_true",
-        help=(
-            "Change the changelog file in-place instead of outputing the new"
-            " changelog contents to STDOUT."
-        ),
-    )
-
-    new_command(
-        "info", help="Print internal state to standard output as JSON."
-    )
-
-    for kind in cast(List[Kind], literal_to_list(Kind)):
-        kind_parser = new_command(
-            kind,
-            help=(
-                f"Add a new bullet to the '{KIND_TO_SECTION_MAP[kind]}'"
-                " section of the next release."
-            ),
-        )
-        kind_parser.add_argument(
-            "body",
-            default=None,
-            nargs="?",
-            help=(
-                "The contents of the new bullet. If no body is provided, the"
-                " bullet file will be opened using your system's default"
-                " editor so you can provide one."
-            ),
-        )
-        kind_parser.add_argument(
-            "-n",
-            "--no-commit",
-            dest="commit_changes",
-            action="store_false",
-            help=(
-                "Specify this option if you do NOT want to commit this new"
-                " bullet using git."
-            ),
-        )
-        kind_parser.add_argument(
-            "-t",
-            "--tags",
-            type=clack.comma_list_or_file.parse,
-            help=clack.comma_list_or_file.help(
-                "Tags (e.g. a Jira issue number) to apply to the new bullet."
-            ),
-        )
-        kind_parser.add_argument(
-            "-b",
-            "--bullet-file-name",
-            default=None,
-            help=(
-                "The basename of the bullet file which we will add this"
-                " changelog bullet to. Defaults to a bullet filename of the"
-                " form USER@BRANCH."
-            ),
-        )
-
-    args = parser.parse_args(argv[1:])
-    kwargs = vars(args)
-
-    cmd: Command = args.command
-    if cmd == "build":
-        return BuildConfig(**kwargs)
-    elif (
-        cmd == "add"
-        or cmd == "chg"
-        or cmd == "dep"
-        or cmd == "fix"
-        or cmd == "misc"
-        or cmd == "rm"
-        or cmd == "sec"
-    ):
-        return KindConfig(**kwargs)
-    elif cmd == "info":
-        return InfoConfig(**kwargs)
-    else:
-        assert_never(cmd)
 
 
 def run(args: Config) -> int:
@@ -293,7 +287,7 @@ def run(args: Config) -> int:
     elif isinstance(args, InfoConfig):
         return run_info(args)
     else:
-        assert_never(args)
+        raise RuntimeError("Logic Error. Is a subcommand maybe not required?")
 
 
 def run_build(args: BuildConfig) -> int:
@@ -306,9 +300,9 @@ def run_build(args: BuildConfig) -> int:
         e = kind_to_bullets_map_r.err()
         logger.error(
             "An error occurred while attempting to load bullets from the"
-            " changelog directory (%s).\n%s",
+            " changelog directory (%s).\n%r",
             args.changelog_dir,
-            e.report(),
+            e.to_json(),
         )
         return 1
 
@@ -360,8 +354,8 @@ def run_build(args: BuildConfig) -> int:
             e = old_version_r.err()
             logger.error(
                 "An error occurred while attempting to parse the project"
-                " version from a changelog markdown header:\n%s",
-                e.report(),
+                " version from a changelog markdown header:\n%r",
+                e.to_json(),
             )
             return 1
 
@@ -588,7 +582,7 @@ class Bullet:
     @classmethod
     def from_string(
         cls, line: str, changelog_dir: PathLike = "changelog"
-    ) -> Result["Bullet"]:
+    ) -> Result["Bullet", ErisError]:
         changelog_dir = Path(changelog_dir)
 
         _TAG_PATTERN = "(?:{})".format(
@@ -804,7 +798,7 @@ def _add_tag_to_paren_group(bullet_line: str, tag: str) -> str:
 
 def read_bullets_from_changelog_dir(
     changelog_dir: PathLike,
-) -> Result[Dict[Kind, List[Bullet]]]:
+) -> Result[Dict[Kind, List[Bullet]], ErisError]:
     """
     Arguments:
         @changelog_dir: Path to the directory which contains the bullet files
@@ -840,12 +834,11 @@ def read_bullets_from_changelog_dir(
 
         bullet_r = Bullet.from_string(line, changelog_dir)
         if isinstance(bullet_r, Err):
-            e = bullet_r.err()
-            return Err(
+            err: Err[Any, ErisError] = Err(
                 "There was a problem parsing one of the changelog"
-                f" bullets:\n\n{line!r}",
-                cause=e,
+                f" bullets:\n\n{line!r}"
             )
+            return err.chain(bullet_r)
 
         bullet = bullet_r.ok()
         kind_to_bullets_map[bullet.kind].append(bullet)
@@ -881,11 +874,11 @@ def jira_org() -> Optional[str]:
 
 
 @lru_cache
-def _get_conf(name: str = None) -> Result[Dict[str, Any]]:
+def _get_conf(name: str = None) -> Result[Dict[str, Any], ErisError]:
     if name is None:
         name = scriptname().replace(".py", "")
 
-    def error(emsg: str) -> Err[ErisError]:
+    def error(emsg: str) -> Err[Any, ErisError]:
         return Err(
             "{}\n\nIn order to use the 'clog' script, this project's"
             " pyproject.toml file must have a [tool.clog] section that defines"
@@ -915,6 +908,6 @@ def _get_conf(name: str = None) -> Result[Dict[str, Any]]:
     return Ok(result)
 
 
-main = clack.main_factory(parse_cli_args, run)
+main = clack.main_factory(run, Config)
 if __name__ == "__main__":
     sys.exit(main())
