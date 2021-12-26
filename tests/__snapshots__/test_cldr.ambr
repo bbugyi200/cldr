@@ -1,0 +1,210 @@
+# name: test_build[add-some-feature-contents1]
+  '
+  # ChangeLog
+  
+  All notable changes to this project will be documented in this file.
+  
+  
+  ## [Unreleased](https://github.com/bbugyi200/cldr/compare/1.0.0...HEAD)
+  
+  The unreleased section is unique in that we do not add content to it directly.
+  Instead, developers of this project add specially formatted bullets to files of
+  the form `changelog/USER@BRANCH.md`. Refer to the [changelog/README.md] file or the
+  [cldr] script (which consumes these bullets when a new version of this project
+  is released) for more information.
+  
+  [changelog/README.md]: https://github.com/bbugyi200/cldr/tree/master/changelog
+  [cldr]: https://bbgithub.dev.bloomberg.com/ComplianceSRE/tools/blob/master/src/bloomberg/compliance/sre/tools/cldr.py
+  
+  
+  ## [1.0.0](https://github.com/bbugyi200/cldr/compare/0.9.9...1.0.0) - YYYY-MM-DD
+  
+  ### Added
+  
+  * Adding some feature.
+  
+  
+  ## [0.9.9](https://bbgithub.dev.bloomberg.com/ComplianceSRE/tools/compare/0.9.8...0.9.9) - 2021-08-08
+  
+  ### Fixed
+  
+  * Fixed some bug.
+  
+  '
+---
+# name: test_build[add-some-feature-contents2]
+  '
+  # ChangeLog
+  
+  All notable changes to this project will be documented in this file.
+  
+  
+  ## [Unreleased](https://github.com/bbugyi200/cldr/compare/1.0.0...HEAD)
+  
+  The unreleased section is unique in that we do not add content to it directly.
+  Instead, developers of this project add specially formatted bullets to files of
+  the form `changelog/USER@BRANCH.md`. Refer to the [changelog/README.md] file or the
+  [cldr] script (which consumes these bullets when a new version of this project
+  is released) for more information.
+  
+  [changelog/README.md]: https://github.com/bbugyi200/cldr/tree/master/changelog
+  [cldr]: https://bbgithub.dev.bloomberg.com/ComplianceSRE/tools/blob/master/src/bloomberg/compliance/sre/tools/cldr.py
+  
+  
+  ## [1.0.0](https://github.com/bbugyi200/cldr/releases/tag/1.0.0) - YYYY-MM-DD
+  
+  ### Added
+  
+  * Adding some feature.
+  
+  '
+---
+# name: test_build[change-some-feature-contents1]
+  '
+  # ChangeLog
+  
+  All notable changes to this project will be documented in this file.
+  
+  
+  ## [Unreleased](https://github.com/bbugyi200/cldr/compare/1.0.0...HEAD)
+  
+  The unreleased section is unique in that we do not add content to it directly.
+  Instead, developers of this project add specially formatted bullets to files of
+  the form `changelog/USER@BRANCH.md`. Refer to the [changelog/README.md] file or the
+  [cldr] script (which consumes these bullets when a new version of this project
+  is released) for more information.
+  
+  [changelog/README.md]: https://github.com/bbugyi200/cldr/tree/master/changelog
+  [cldr]: https://bbgithub.dev.bloomberg.com/ComplianceSRE/tools/blob/master/src/bloomberg/compliance/sre/tools/cldr.py
+  
+  
+  ## [1.0.0](https://github.com/bbugyi200/cldr/compare/0.9.9...1.0.0) - YYYY-MM-DD
+  
+  ### Changed
+  
+  * Changing some feature. ([FOO-103](https://jira.prod.bloomberg.com/browse/FOO-103), [PR:#123](https://github.com/bbugyi200/cldr/pull/123), [python-libs#456](https://github.com/bbugyi200/python-libs/issues/456))
+  
+  
+  ## [0.9.9](https://bbgithub.dev.bloomberg.com/ComplianceSRE/tools/compare/0.9.8...0.9.9) - 2021-08-08
+  
+  ### Fixed
+  
+  * Fixed some bug.
+  
+  '
+---
+# name: test_build[change-some-feature-contents2]
+  '
+  # ChangeLog
+  
+  All notable changes to this project will be documented in this file.
+  
+  
+  ## [Unreleased](https://github.com/bbugyi200/cldr/compare/1.0.0...HEAD)
+  
+  The unreleased section is unique in that we do not add content to it directly.
+  Instead, developers of this project add specially formatted bullets to files of
+  the form `changelog/USER@BRANCH.md`. Refer to the [changelog/README.md] file or the
+  [cldr] script (which consumes these bullets when a new version of this project
+  is released) for more information.
+  
+  [changelog/README.md]: https://github.com/bbugyi200/cldr/tree/master/changelog
+  [cldr]: https://bbgithub.dev.bloomberg.com/ComplianceSRE/tools/blob/master/src/bloomberg/compliance/sre/tools/cldr.py
+  
+  
+  ## [1.0.0](https://github.com/bbugyi200/cldr/releases/tag/1.0.0) - YYYY-MM-DD
+  
+  ### Changed
+  
+  * Changing some feature. ([FOO-103](https://jira.prod.bloomberg.com/browse/FOO-103), [PR:#123](https://github.com/bbugyi200/cldr/pull/123), [python-libs#456](https://github.com/bbugyi200/python-libs/issues/456))
+  
+  '
+---
+# name: test_build[remove-some-feature-contents1]
+  '
+  # ChangeLog
+  
+  All notable changes to this project will be documented in this file.
+  
+  
+  ## [Unreleased](https://github.com/bbugyi200/cldr/compare/1.0.0...HEAD)
+  
+  The unreleased section is unique in that we do not add content to it directly.
+  Instead, developers of this project add specially formatted bullets to files of
+  the form `changelog/USER@BRANCH.md`. Refer to the [changelog/README.md] file or the
+  [cldr] script (which consumes these bullets when a new version of this project
+  is released) for more information.
+  
+  [changelog/README.md]: https://github.com/bbugyi200/cldr/tree/master/changelog
+  [cldr]: https://bbgithub.dev.bloomberg.com/ComplianceSRE/tools/blob/master/src/bloomberg/compliance/sre/tools/cldr.py
+  
+  
+  ## [1.0.0](https://github.com/bbugyi200/cldr/compare/0.9.9...1.0.0) - YYYY-MM-DD
+  
+  ### Removed
+  
+  * Removing some feature. ([FOO-103](https://jira.prod.bloomberg.com/browse/FOO-103))
+  
+  
+  ## [0.9.9](https://bbgithub.dev.bloomberg.com/ComplianceSRE/tools/compare/0.9.8...0.9.9) - 2021-08-08
+  
+  ### Fixed
+  
+  * Fixed some bug.
+  
+  '
+---
+# name: test_build[remove-some-feature-contents2]
+  '
+  # ChangeLog
+  
+  All notable changes to this project will be documented in this file.
+  
+  
+  ## [Unreleased](https://github.com/bbugyi200/cldr/compare/1.0.0...HEAD)
+  
+  The unreleased section is unique in that we do not add content to it directly.
+  Instead, developers of this project add specially formatted bullets to files of
+  the form `changelog/USER@BRANCH.md`. Refer to the [changelog/README.md] file or the
+  [cldr] script (which consumes these bullets when a new version of this project
+  is released) for more information.
+  
+  [changelog/README.md]: https://github.com/bbugyi200/cldr/tree/master/changelog
+  [cldr]: https://bbgithub.dev.bloomberg.com/ComplianceSRE/tools/blob/master/src/bloomberg/compliance/sre/tools/cldr.py
+  
+  
+  ## [1.0.0](https://github.com/bbugyi200/cldr/releases/tag/1.0.0) - YYYY-MM-DD
+  
+  ### Removed
+  
+  * Removing some feature. ([FOO-103](https://jira.prod.bloomberg.com/browse/FOO-103))
+  
+  '
+---
+# name: test_info
+  '
+  {"bullets": [{"kind": "add", "body": "Add some new feature.", "tags": ["123", "!5"]}, {"kind": "rm", "body": "Remove some old feature.", "tags": ["!6", "bc"]}]}
+  
+  '
+---
+# name: test_kind[bullets0-args0]
+  '
+  * add(123,!5): Added some feature.
+  
+  '
+---
+# name: test_kind[bullets1-args1]
+  '
+  * add(123,!5): Added some feature.
+  * fix: Fixed some bug.
+  
+  '
+---
+# name: test_kind[bullets2-args2]
+  '
+  * add(123,!5): Added some feature.
+  * fix: Fixed some bug.
+  * rm(bc): Removed some important feature.
+  
+  '
+---

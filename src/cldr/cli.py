@@ -48,6 +48,7 @@ import sys
 from typing import (
     Any,
     Dict,
+    Final,
     Iterable,
     Iterator,
     List,
@@ -62,7 +63,6 @@ from typing import (
 import clack
 from eris import ErisError, Err, Ok, Result
 from logrus import Logger
-from metaman import scriptname
 import proctor
 from pydantic.dataclasses import dataclass
 import toml
@@ -131,6 +131,7 @@ new version of this project is released.
 
 [cldr]: {CLOG_URL}
 """
+SCRIPTNAME: Final = "cldr"
 
 
 class Config(clack.Config):
@@ -912,10 +913,7 @@ def jira_org() -> Optional[str]:
 
 
 @lru_cache
-def _get_conf(name: str = None) -> Result[Dict[str, Any], ErisError]:
-    if name is None:
-        name = scriptname().replace(".py", "")
-
+def _get_conf() -> Result[Dict[str, Any], ErisError]:
     def error(emsg: str) -> Err[Any, ErisError]:
         return Err(
             "{}\n\nIn order to use the 'cldr' script, this project's"
@@ -930,10 +928,10 @@ def _get_conf(name: str = None) -> Result[Dict[str, Any], ErisError]:
     else:
         return error("The pyproject.toml file does not exist.")
 
-    result = conf.get("tool", {}).get(name)
+    result = conf.get("tool", {}).get(SCRIPTNAME)
     if result is None:
         return error(
-            f"The pyproject.toml file does not contain a [tool.{name}]"
+            f"The pyproject.toml file does not contain a [tool.{SCRIPTNAME}]"
             " section."
         )
 

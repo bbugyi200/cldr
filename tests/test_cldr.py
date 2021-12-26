@@ -59,10 +59,12 @@ def changelog_dir_fixture(tmp_path: Path) -> Path:
     [
         param("* add: Adding some feature.", 0, id="add-some-feature"),
         param(
-            "- rm(103): Removing some feature.", 0, id="remove-some-feature"
+            "- rm(foo-103): Removing some feature.",
+            0,
+            id="remove-some-feature",
         ),
         param(
-            "* chg (csre-103,!123,python-libs#456): Changing some feature.",
+            "* chg (foo-103,!123,python-libs#456): Changing some feature.",
             0,
             id="change-some-feature",
         ),
