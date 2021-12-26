@@ -24,11 +24,11 @@ binaryornot==0.4.4
     # via cookiecutter
 black==21.12b0
     # via -r requirements-dev.in
-bolton-clack==0.1.0
+bolton-clack==0.1.2
     # via
     #   -r requirements.in
     #   cldr
-bolton-eris==0.2.1
+bolton-eris==0.2.2
     # via
     #   -r requirements.in
     #   bolton-proctor
@@ -284,7 +284,7 @@ zipp==3.6.0
 # The following packages are considered to be unsafe in a requirements file:
 pip==21.3.1
     # via pip-tools
-setuptools==60.0.5
+setuptools==60.1.0
     # via
     #   astroid
     #   pip-tools
