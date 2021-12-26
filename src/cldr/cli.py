@@ -2,33 +2,33 @@
 
 Examples:
     # Prints new changelog file contents to STDOUT.
-    clog build -V 1.2.3
+    cldr build -V 1.2.3
 
     # Updates CHANGELOG.md in-place.
-    clog build -V 1.2.3 -i
+    cldr build -V 1.2.3 -i
 
     # Add a new bullet to the 'Added' section of the next release's
     # CHANGELOG.md section.
-    clog add "Added new feature."
+    cldr add "Added new feature."
 
     # Add a new bullet to the 'Added' section of the next release's
     # CHANGELOG.md section, which is related to the CSRE-123 jira issue.
-    clog add -t csre-123 "Added new feature."
+    cldr add -t csre-123 "Added new feature."
 
     # Add a new bullet to the 'Fixed' section...
-    clog fix "Fixed a bug."
+    cldr fix "Fixed a bug."
 
     # Add a new bullet to the 'Miscellaneous' section...
-    clog misc "Did something unreleated to any feature."
+    cldr misc "Did something unreleated to any feature."
 
     # Add a new bullet to the 'Changed' section...
-    clog mod "Changed an existing feature."
+    cldr mod "Changed an existing feature."
 
     # Add a new bullet to the 'Removed' section...
-    clog rm "Removed an existing feature."
+    cldr rm "Removed an existing feature."
 
-    # Print internal clog information to STDOUT as JSON data.
-    clog info
+    # Print internal cldr information to STDOUT as JSON data.
+    cldr info
 """
 
 from __future__ import annotations
@@ -106,30 +106,30 @@ changelog bullet's `BODY` is `'...'` and the bullet references a commit,
 `BODY` will be taken to be the subject of the referenced commit's message.
 
 Here is an example of a valid bullet which references the CSRE-103 Jira issue:
-`* add(csre-103): Added the clog.py script.`
+`* add(csre-103): Added the cldr.py script.`
 """
-CLOG_URL = "https://bbgithub.dev.bloomberg.com/ComplianceSRE/tools/blob/master/src/bloomberg/compliance/sre/tools/clog.py"
+CLOG_URL = "https://bbgithub.dev.bloomberg.com/ComplianceSRE/tools/blob/master/src/bloomberg/compliance/sre/tools/cldr.py"
 UNRELEASED_BEGIN = f"""\
 The unreleased section is unique in that we do not add content to it directly.
 Instead, developers of this project add specially formatted bullets to files of
 the form `{{0}}/USER@BRANCH.md`. Refer to the [{{0}}/README.md] file or the
-[clog] script (which consumes these bullets when a new version of this project
+[cldr] script (which consumes these bullets when a new version of this project
 is released) for more information.
 
 [{{0}}/README.md]: {{1}}/tree/master/{{0}}
-[clog]: {CLOG_URL}
+[cldr]: {CLOG_URL}
 """.format
 README_CONTENTS = f"""\
 # Changelog Bullet Files
 
 This directory should contain markdown files of the form `USER@BRANCH.md`. Each
 of these files should contain one or more bullets of the form described in the
-following paragraph. These bullets will be consumed by the [clog] script when a
+following paragraph. These bullets will be consumed by the [cldr] script when a
 new version of this project is released.
 
 {BULLET_EXPLANATION}
 
-[clog]: {CLOG_URL}
+[cldr]: {CLOG_URL}
 """
 
 
@@ -475,7 +475,7 @@ def run_kind(args: KindConfig) -> int:
                 "git",
                 "commit",
                 "-m",
-                f"clog: Add new changelog bullet(s) to the {bullet_file.name}"
+                f"cldr: Add new changelog bullet(s) to the {bullet_file.name}"
                 " bullet file.",
             ],
             stdout=sys.stdout,
@@ -918,8 +918,8 @@ def _get_conf(name: str = None) -> Result[Dict[str, Any], ErisError]:
 
     def error(emsg: str) -> Err[Any, ErisError]:
         return Err(
-            "{}\n\nIn order to use the 'clog' script, this project's"
-            " pyproject.toml file must have a [tool.clog] section that defines"
+            "{}\n\nIn order to use the 'cldr' script, this project's"
+            " pyproject.toml file must have a [tool.cldr] section that defines"
             " a 'github_repo' option and (optionally) a 'jira_org' option."
             .format(emsg)
         )
@@ -939,7 +939,7 @@ def _get_conf(name: str = None) -> Result[Dict[str, Any], ErisError]:
 
     if result.get("github_repo") is None:
         return error(
-            "The [tool.clog] section in the pyproject.toml file does not set"
+            "The [tool.cldr] section in the pyproject.toml file does not set"
             " the 'github_repo' option."
         )
 
