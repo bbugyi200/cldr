@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+
+###################################################################################################
+# This script adds the appropriate release label (e.g. 'no release', 'patch',
+# 'minor', or 'major') to a GitHub PR. While doing so, we also verify that all
+# release labels exist and look the way we expect them to.
+#
+# Usage
+# -----
+# add_bumper_label_to_pr [--debug] GITHUB_API_URL LABEL_NAME PR_NUMBER
+# add_bumper_label_to_pr --help
+#
+# Positional Arguments
+# --------------------
+# GITHUB_API_URL: The full github API url for this org + repo (e.g.
+#   https://USER:TOKEN@github.com/api/v3/repos/bbugyi200/dummy).
+#
+# LABEL_NAME: The name of the label that we want to add to this PR.
+#
+# PR_NUMBER: The PR number for the PR that we are adding the label to.
+###################################################################################################
+
+source ../lib/bugyi.sh
+
+ALL_LABELS=("no release" "patch" "minor" "major")
+readonly USAGE_MSG="$(
+    pyprintf "usage: {0} [--debug] GITHUB_API_URL LABEL_NAME PR_NUMBER\n{1}{0} --help\n" \
+        "${SCRIPTNAME}" \
+        "       "
+)"
+
+# The hex colors for each different type of release label.
+NO_RELEASE_COLOR="f5f5f5"  # white (almost)
+PATCH_COLOR="c8c8c8"       # grey
+MINOR_COLOR="676767"       # dark grey
+MAJOR_COLOR="000000"       # black
+
+# The descriptions for each different type of release label.
+NO_RELEASE_DESC="Merging this PR will NOT trigger a new release."
+PATCH_DESC="Merging this PR will trigger a new 'patch' release."
+MINOR_DESC="Merging this PR will trigger a new 'minor' release."
+MAJOR_DESC="Merging this PR will trigger a new 'major' release."
+
+function run() {
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo -e "${USAGE_MSG}"
+        return 0
+    fi
+
+    if [[ "$1" == "-d" || "$1" == "--debug" ]]; then
+        shift
+        PS4='$LINENO: '
+        set -x
+    fi
+
+    if [[ $# -ne 3 ]]; then
+        log::error "Invalid number of command-line arugments: expected=3 actual=$#"
+        die -x 2 "${USAGE_MSG}"
+    fi
+
+    local github_api_url="$1"
+    shift
+
+    local the_label="$1"
+    shift
+
+    local pr_number="$1"
+    shift
+
+    if [[ " ${ALL_LABELS[*]} " != *" ${the_label} "* ]]; then
+        local pretty_labels=""
+        for label in "${ALL_LABELS[@]}"; do
+            pretty_labels+=" \"${label}\""
+        done
+
+        die "Invalid label ('%s'). Choose from one of the following allowed labels: %s" \
+            "${the_label}" \
+            "${pretty_labels}"
+    fi
+
+    # For every possible release label, we verify that the label exists, looks
+    # the way we expect it to, and either add it to (if it matches the desired
+    # label) or remove it from the current PR...
+    for some_label in "${ALL_LABELS[@]}"; do
+        local encoded_some_label="$(urlencode "${some_label}")"
+
+        local expected_color
+        local expected_desc
+        case "${some_label}" in
+        "no release")
+            expected_color="${NO_RELEASE_COLOR}"
+            expected_desc="${NO_RELEASE_DESC}"
+            ;;
+        "patch")
+            expected_color="${PATCH_COLOR}"
+            expected_desc="${PATCH_DESC}"
+            ;;
+        "minor")
+            expected_color="${MINOR_COLOR}"
+            expected_desc="${MINOR_DESC}"
+            ;;
+        "major")
+            expected_color="${MAJOR_COLOR}"
+            expected_desc="${MAJOR_DESC}"
+            ;;
+        *) ;;
+        esac
+
+        local label_info="$(mktemp)"
+        trap 'rm -rf ${label_info}' EXIT
+        run_curl "${github_api_url}"/labels/"${encoded_some_label}" >"${label_info}"
+
+        local actual_color="$(jq -r '.color' "${label_info}")"
+        local actual_desc="$(jq -r '.description' "${label_info}")"
+
+        # If this label does not exist...
+        if [[ "${actual_color}" == "null" || "${actual_color}" == "" ]]; then
+            # Then we must create it...
+            log::info "The '${some_label}' does not exist. Creating it for the first time..."
+            run_curl -X POST -d "{\"name\": \"${some_label}\", \"color\": \"${expected_color}\", \"description\": \"${expected_desc}\"}" "${github_api_url}"/labels
+        # Otherwise, if this label does exist, we check to make sure that it
+        # looks how we expect...
+        else
+            local update_label=false
+            if [[ "${actual_color}" != "${expected_color}" ]]; then
+                update_label=true
+                log::info "The actual color of this label does not match the expected color ('#${actual_color}' != '#${expected_color}')."
+            fi
+            if [[ "${actual_desc}" != "${expected_desc}" ]]; then
+                update_label=true
+                log::info "The actual description of this label does not match the expected description ('${actual_desc}' != '${expected_desc}')."
+            fi
+
+            # If the label's color or description don't match what we expect...
+            if [[ "${update_label}" == true ]]; then
+                # Then we update the label...
+                log::info "Updating the '%s' label's properties..." "${some_label}"
+                run_curl -X PATCH -d "{\"new_name\": \"${some_label}\", \"color\": \"${expected_color}\", \"description\": \"${expected_desc}\"}" "${github_api_url}"/labels/"${encoded_some_label}"
+            fi
+        fi
+
+        # If this release label is the one that should be added to the
+        # current PR...
+        if [[ "${some_label}" == "${the_label}" ]]; then
+            # Then we add it...
+            log::info "Adding the '%s' label to PR:%s..." "${some_label}" "${pr_number}"
+            run_curl -X POST -d "{\"labels\": [\"${the_label}\"]}" "${github_api_url}"/issues/"${pr_number}"/labels
+        # Otherwise, in order to ensure that release labels are mutually
+        # exclusive, we delete this label from the current PR...
+        else
+            log::info "Deleting the '%s' label from PR:%s..." "${some_label}" "${pr_number}"
+            run_curl -X DELETE "${github_api_url}"/issues/"${pr_number}"/labels/"${encoded_some_label}"
+        fi
+    done
+}
+
+#################################################################################
+#  Wrapper for curl command that logs the exact command that is run.
+#################################################################################
+function run_curl() {
+    log::info --up 1 "+curl $*"
+    curl "$@"
+}
+
+if [[ "${SCRIPTNAME}" == "$(basename "${BASH_SOURCE[0]}")" ]]; then
+    run "$@"
+fi

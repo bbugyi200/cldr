@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+###################################################################################################
+# This script attempts to infer what version part to bump in the next release
+# from this repo's current changelog bullets.
+#
+# Usage
+# -----
+# infer_bumper_version_part_from_clog [--debug]
+#
+# Side Effects
+# ------------
+# Prints one of the following values to STDOUT:
+#     * If any cldr bullets are tagged as breaking changes (i.e. have the `bc` tag): 'major'
+#     * Else if any `add`, `chg`, or `rm` cldr bullets exist: 'minor'
+#     * Else if any cldr bullets exist: 'patch'
+#     * Else: 'none'
+###################################################################################################
+
+source ../lib/bugyi.sh
+
+function run() {
+    if [[ "${1}" == "-d" || "${1}" == "--debug" ]]; then
+        shift
+        PS4='$LINENO: '
+        set -x
+    fi
+
+    local clog_info="$(mktemp)"
+    trap 'rm -rf ${clog_info}' EXIT
+    if ! cldr info >"${clog_info}"; then
+        log::error "The cldr info command failed. Aborting..."
+        return 1
+    fi
+
+    local bullet_kinds=" $(jq -r '.bullets[].kind' "${clog_info}" | sort -u | tr '\n' ' ') "
+    local bullet_tags=" $(jq -r '.bullets[].tags | join("\n")' "${clog_info}" | sort -u | tr '\n' ' ') "
+    local num_of_bullets="$(jq -r '.bullets | length' "${clog_info}")"
+
+    local major="major"
+    local current_version="$(bumper info | jq -r '.current_version')"
+    if [[ "${current_version}" == "0."* ]]; then
+        imsg "A ZeroVer version has been detected (%s)." "${current_version}"
+
+        major="minor"
+    fi
+
+    local result
+    local success_msg
+    if [[ "${bullet_tags}" == *" bc "* ]]; then
+        result="${major}"
+        success_msg="A changelog bullet tagged as a breaking change (i.e. tagged with 'bc') has been found."
+    elif [[ "${bullet_kinds}" == *" add "* || "${bullet_kinds}" == *" chg "* || "${bullet_kinds}" == *" rm "* ]]; then
+        result="minor"
+        success_msg="One or more 'add', 'chg', or 'rm' changelog bullets has been found."
+    elif [[ "${num_of_bullets}" -gt 0 ]]; then
+        result="patch"
+        success_msg="Found no 'add', 'chg', or 'rm' changelog bullets."
+    else
+        result="none"
+        wmsg "No changelog bullets found. Recommending that no release be made (i.e. do not bump any part of the version)."
+    fi
+
+    if [[ -n "${success_msg}" ]]; then
+        imsg "%s. Recommending that we bump the '%s' version part." \
+            "${success_msg}" \
+            "${result}"
+    fi
+
+    echo "${result}"
+}
+
+if [[ "${SCRIPTNAME}" == "$(basename "${BASH_SOURCE[0]}")" ]]; then
+    run "$@"
+fi

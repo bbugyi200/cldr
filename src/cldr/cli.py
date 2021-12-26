@@ -77,7 +77,7 @@ TAG_TYPES: List[Type["Tag"]] = []
 Kind = Literal["add", "chg", "dep", "fix", "misc", "rm", "sec"]
 Command = Literal["build", "info", Kind]  # available CLI sub-commands
 
-KIND_TO_SECTION_MAP: Dict[Kind, str] = {
+KIND_TO_SECTION_MAP: Final[Dict[Kind, str]] = {
     "add": "Added",
     "chg": "Changed",
     "dep": "Deprecated",
