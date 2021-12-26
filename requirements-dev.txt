@@ -24,7 +24,7 @@ binaryornot==0.4.4
     # via cookiecutter
 black==21.12b0
     # via -r requirements-dev.in
-bolton-clack==0.1.2
+bolton-clack==0.1.3
     # via
     #   -r requirements.in
     #   cldr
@@ -87,7 +87,7 @@ docutils==0.17.1
     #   m2r2
     #   sphinx
     #   sphinx-rtd-theme
-filelock==3.4.0
+filelock==3.4.1
     # via
     #   tox
     #   virtualenv
