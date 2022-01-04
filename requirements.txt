@@ -4,7 +4,7 @@
 #
 #    "make update-requirements"
 #
-bolton-clack==0.1.3
+bolton-clack==0.2.0
     # via -r requirements.in
 bolton-eris==0.2.2
     # via
@@ -18,7 +18,6 @@ bolton-logrus==0.1.0
     #   bolton-clack
 bolton-metaman==0.1.1
     # via
-    #   bolton-clack
     #   bolton-eris
     #   bolton-logrus
 bolton-proctor==0.2.0
@@ -28,7 +27,9 @@ bolton-typist==0.1.1
     #   -r requirements.in
     #   bolton-clack
     #   bolton-eris
-pydantic==1.8.2
+pydantic==1.9.0
+    # via bolton-clack
+pyyaml==6.0
     # via bolton-clack
 structlog==21.5.0
     # via bolton-logrus
