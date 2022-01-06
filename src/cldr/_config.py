@@ -209,7 +209,8 @@ def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
         ),
     )
     new_parser.add_argument(
-        "body",
+        "-b",
+        "--body",
         nargs="?",
         help=(
             "The contents of the new bullet. If no body is provided,"
@@ -236,7 +237,7 @@ def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
         ),
     )
     new_parser.add_argument(
-        "-b",
+        "-B",
         "--bullet-file-name",
         default=None,
         help=(

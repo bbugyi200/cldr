@@ -116,11 +116,14 @@ def test_build(
 @params(
     "bullets,args",
     [
-        ([], ["add", "-t", "123,!5", "Added some feature."]),
-        (["* add(123,!5): Added some feature."], ["fix", "Fixed some bug."]),
+        ([], ["add", "-t", "123,!5", "--body", "Added some feature."]),
+        (
+            ["* add(123,!5): Added some feature."],
+            ["fix", "--body", "Fixed some bug."],
+        ),
         (
             ["* add(123,!5): Added some feature.", "* fix: Fixed some bug."],
-            ["rm", "-t", "bc", "Removed some important feature."],
+            ["rm", "-t", "bc", "--body", "Removed some important feature."],
         ),
     ],
 )
