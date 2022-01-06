@@ -203,7 +203,6 @@ def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
         "kind",
         metavar="KIND",
         choices=choices,
-        nargs=1,
         help=(
             "This is the type (aka KIND) of the changelog bullet that will be"
             f" added. Choose from one of {choices}."
@@ -248,4 +247,6 @@ def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
     )
 
     args = parser.parse_args(argv[1:])
-    return clack.filter_cli_args(args)
+    kwargs = clack.filter_cli_args(args)
+
+    return kwargs
