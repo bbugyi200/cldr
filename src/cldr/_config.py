@@ -180,7 +180,6 @@ def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
     build_parser.add_argument(
         "-V",
         "--new-version",
-        required=True,
         help="The newest project version.",
     )
     build_parser.add_argument(
