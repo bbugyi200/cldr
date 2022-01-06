@@ -48,11 +48,11 @@ from typist import literal_to_list
 from ._constants import PROJECT_NAME, Kind
 
 
-BUildCommand = Literal["build"]
+BuildCommand = Literal["build"]
 InfoCommand = Literal["info"]
 NewCommand = Literal["new"]
 Command = Literal[
-    BUildCommand, InfoCommand, NewCommand
+    BuildCommand, InfoCommand, NewCommand
 ]  # available CLI sub-commands
 
 
@@ -68,7 +68,7 @@ class Config(clack.Config):
 class BuildConfig(Config):
     """TODO"""
 
-    command: BUildCommand
+    command: BuildCommand
 
     # --- OPTIONS
     changelog: Path = Path("CHANGELOG.md")

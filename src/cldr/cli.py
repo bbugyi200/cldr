@@ -24,6 +24,7 @@ from typing import (
     Protocol,
     Type,
     cast,
+    runtime_checkable,
 )
 
 import clack
@@ -330,6 +331,7 @@ def get_version(line: str) -> Result[str, ErisError]:
         )
 
 
+@runtime_checkable
 class Tag(Protocol):
     """TODO"""
 
