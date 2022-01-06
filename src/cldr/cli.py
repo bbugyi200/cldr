@@ -67,9 +67,9 @@ def run_build(cfg: BuildConfig) -> int:
         e = kind_to_bullets_map_r.err()
         logger.error(
             "An error occurred while attempting to load bullets from the"
-            " changelog directory (%s).\n%r",
-            cfg.changelog_dir,
-            e.to_json(),
+            " changelog directory.",
+            changelog_dir=cfg.changelog_dir,
+            error=e.to_json(),
         )
         return 1
 
