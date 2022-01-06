@@ -1,4 +1,4 @@
-"""Contains the clack runner functions."""
+"""Contains the clack.MainType function."""
 
 from __future__ import annotations
 

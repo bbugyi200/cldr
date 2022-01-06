@@ -10,7 +10,7 @@ from _pytest.capture import CaptureFixture
 from pytest import fixture, mark, param
 from syrupy.assertion import SnapshotAssertion as Snapshot
 
-from cldr import cli
+import cldr
 
 
 params = mark.parametrize
@@ -88,7 +88,7 @@ def test_build(
     bullet_file = changelog_dir / "user@branch.md"
     bullet_file.write_text(bullet + "\n")
 
-    exit_code = cli.main(
+    exit_code = cldr.main(
         [
             "",
             "--changelog-dir",
@@ -145,7 +145,7 @@ def test_kind(
     cmd_list.append("new")
     cmd_list.extend(["--no-commit", "--bullet-file-name", bullet_fname])
     cmd_list.extend(args)
-    cli.main(cmd_list)
+    cldr.main(cmd_list)
 
     assert bullet_file_path.read_text() == snapshot
 
@@ -161,6 +161,6 @@ def test_info(
         "* rm(!6,bc): Remove some old feature.\n"
     )
 
-    cli.main(["", "--changelog-dir", str(changelog_dir), "info"])
+    cldr.main(["", "--changelog-dir", str(changelog_dir), "info"])
     captured = capsys.readouterr()
     assert captured.out == snapshot

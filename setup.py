@@ -93,7 +93,7 @@ setup(
     description=DESCRIPTION,
     entry_points={
         "console_scripts": [
-            "cldr = cldr.cli:main",
+            "cldr = cldr:main",
         ]
     },
     include_package_data=True,
