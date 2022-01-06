@@ -139,8 +139,9 @@ def test_kind(
         )
 
     cmd_list = ["", "--changelog-dir", str(changelog_dir)]
-    cmd_list.extend(args)
+    cmd_list.append("new")
     cmd_list.extend(["--no-commit", "--bullet-file-name", bullet_fname])
+    cmd_list.extend(args)
     cli.main(cmd_list)
 
     assert bullet_file_path.read_text() == snapshot

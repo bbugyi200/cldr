@@ -1,35 +1,4 @@
-"""Command-line tool to make managing a changelog file easier.
-
-Examples:
-    # Prints new changelog file contents to STDOUT.
-    cldr build -V 1.2.3
-
-    # Updates CHANGELOG.md in-place.
-    cldr build -V 1.2.3 -i
-
-    # Add a new bullet to the 'Added' section of the next release's
-    # CHANGELOG.md section.
-    cldr add "Added new feature."
-
-    # Add a new bullet to the 'Added' section of the next release's
-    # CHANGELOG.md section, which is related to the CSRE-123 jira issue.
-    cldr add -t csre-123 "Added new feature."
-
-    # Add a new bullet to the 'Fixed' section...
-    cldr fix "Fixed a bug."
-
-    # Add a new bullet to the 'Miscellaneous' section...
-    cldr misc "Did something unreleated to any feature."
-
-    # Add a new bullet to the 'Changed' section...
-    cldr mod "Changed an existing feature."
-
-    # Add a new bullet to the 'Removed' section...
-    cldr rm "Removed an existing feature."
-
-    # Print internal cldr information to STDOUT as JSON data.
-    cldr info
-"""
+"""Contains the clack runner functions."""
 
 from __future__ import annotations
 
@@ -66,9 +35,9 @@ from typist import PathLike, literal_to_list
 
 from ._config import (
     BuildConfig,
-    Config,
     InfoConfig,
-    KindConfig,
+    NewConfig,
+    clack_parser,
     github_repo,
     jira_org,
 )
@@ -87,38 +56,26 @@ logger = Logger(__name__)
 TAG_TYPES: List[Type["Tag"]] = []
 
 
-def run(args: Config) -> int:
-    """TODO"""
-    if isinstance(args, BuildConfig):
-        return run_build(args)
-    elif isinstance(args, KindConfig):
-        return run_kind(args)
-    elif isinstance(args, InfoConfig):
-        return run_info(args)
-    else:
-        raise RuntimeError("Logic Error. Is a subcommand maybe not required?")
-
-
-def run_build(args: BuildConfig) -> int:
+def run_build(cfg: BuildConfig) -> int:
     """TODO"""
     UNRELEASED_TITLE = "## [Unreleased]"
 
     unreleased_section_start: Optional[int] = None
     unreleased_section_end: Optional[int] = None
-    kind_to_bullets_map_r = read_bullets_from_changelog_dir(args.changelog_dir)
+    kind_to_bullets_map_r = read_bullets_from_changelog_dir(cfg.changelog_dir)
     if isinstance(kind_to_bullets_map_r, Err):
         e = kind_to_bullets_map_r.err()
         logger.error(
             "An error occurred while attempting to load bullets from the"
             " changelog directory (%s).\n%r",
-            args.changelog_dir,
+            cfg.changelog_dir,
             e.to_json(),
         )
         return 1
 
     kind_to_bullets_map = kind_to_bullets_map_r.ok()
 
-    for i, line in enumerate(args.changelog.open()):
+    for i, line in enumerate(cfg.changelog.open()):
         line = line.strip()
         if line.startswith(
             (
@@ -140,24 +97,24 @@ def run_build(args: BuildConfig) -> int:
         logger.error(
             "No unreleased section found in %s. The unreleased section should"
             " have the following form: '%s(%s/compare/X.Y.Z...HEAD)'",
-            args.changelog,
+            cfg.changelog,
             UNRELEASED_TITLE,
             github_repo(),
         )
         return 1
 
-    old_lines = args.changelog.read_text().split("\n")
+    old_lines = cfg.changelog.read_text().split("\n")
 
     new_contents = "\n".join(old_lines[:unreleased_section_start]) + "\n"
     new_contents += "{}({}/compare/{}...HEAD)\n".format(
-        UNRELEASED_TITLE, github_repo(), args.new_version
+        UNRELEASED_TITLE, github_repo(), cfg.new_version
     )
     new_contents += (
-        f"\n{UNRELEASED_BEGIN(args.changelog_dir.name, github_repo())}\n\n"
+        f"\n{UNRELEASED_BEGIN(cfg.changelog_dir.name, github_repo())}\n\n"
     )
 
     if unreleased_section_end is None:
-        new_version_url = f"{github_repo()}/releases/tag/{args.new_version}"
+        new_version_url = f"{github_repo()}/releases/tag/{cfg.new_version}"
     else:
         old_version_r = get_version(old_lines[unreleased_section_end])
         if isinstance(old_version_r, Err):
@@ -171,10 +128,10 @@ def run_build(args: BuildConfig) -> int:
 
         old_version = old_version_r.ok()
         new_version_url = (
-            f"{github_repo()}/compare/{old_version}...{args.new_version}"
+            f"{github_repo()}/compare/{old_version}...{cfg.new_version}"
         )
 
-    version_part = f"[{args.new_version}]({new_version_url})"
+    version_part = f"[{cfg.new_version}]({new_version_url})"
     date_part = dt.datetime.today().strftime("%Y-%m-%d")
     new_contents += f"## {version_part} - {date_part}\n\n"
 
@@ -197,27 +154,27 @@ def run_build(args: BuildConfig) -> int:
         new_contents += "\n\n"
         new_contents += "\n".join(old_lines[unreleased_section_end:])
 
-    out_file = args.changelog.open("w") if args.in_place else sys.stdout
+    out_file = cfg.changelog.open("w") if cfg.in_place else sys.stdout
     out_file.write(new_contents)
     out_file.close()
 
     # Delete the bullet files if the --in-place option was given...
-    if args.in_place:
-        for path in iter_bullet_files(args.changelog_dir):
+    if cfg.in_place:
+        for path in iter_bullet_files(cfg.changelog_dir):
             path.unlink()
 
     return 0
 
 
-def run_kind(args: KindConfig) -> int:
+def run_new(cfg: NewConfig) -> int:
     """TODO"""
-    if not args.changelog_dir.exists():
-        logger.info("Creating %s directory...", args.changelog_dir)
-        args.changelog_dir.mkdir(parents=True)
+    if not cfg.changelog_dir.exists():
+        logger.info("Creating %s directory...", cfg.changelog_dir)
+        cfg.changelog_dir.mkdir(parents=True)
 
     git_add_paths = []
 
-    readme_file = args.changelog_dir / "README.md"
+    readme_file = cfg.changelog_dir / "README.md"
     update_readme = False
     if not readme_file.exists():
         logger.info("Initializing %s contents...", readme_file)
@@ -230,28 +187,28 @@ def run_kind(args: KindConfig) -> int:
         readme_file.write_text(README_CONTENTS)
         git_add_paths.append(readme_file)
 
-    if args.bullet_file_name is None:
-        bullet_file = args.changelog_dir / f"{get_user()}@{get_branch()}.md"
+    if cfg.bullet_file_name is None:
+        bullet_file = cfg.changelog_dir / f"{get_user()}@{get_branch()}.md"
     else:
-        bullet_file = args.changelog_dir / f"{args.bullet_file_name}.md"
+        bullet_file = cfg.changelog_dir / f"{cfg.bullet_file_name}.md"
 
     git_add_paths.append(bullet_file)
     logger.info(
-        "Adding new '%s' bullet to the %s file.", args.command, bullet_file
+        "Adding new '%s' bullet to the %s file.", cfg.kind, bullet_file
     )
 
     old_lines = (
         bullet_file.read_text().split("\n") if bullet_file.exists() else []
     )
     bullet_line = "* {}{}: {}".format(
-        args.command,
-        f'({",".join(args.tags)})' if args.tags else "",
-        "" if args.body is None else f"{args.body}\n",
+        cfg.kind,
+        f'({",".join(cfg.tags)})' if cfg.tags else "",
+        "" if cfg.body is None else f"{cfg.body}\n",
     )
     with bullet_file.open("a") as f:
         f.write(bullet_line)
 
-    if args.body is None:
+    if cfg.body is None:
         editor_cmd_list = get_editor_cmd_list(
             line=len(old_lines) + 1, column=len(bullet_line) + 1
         )
@@ -266,7 +223,7 @@ def run_kind(args: KindConfig) -> int:
     new_lines = (
         bullet_file.read_text().split("\n") if bullet_file.exists() else []
     )
-    if args.commit_changes and old_lines != new_lines:
+    if cfg.commit_changes and old_lines != new_lines:
         git_add_files = [str(f) for f in git_add_paths]
         logger.info(
             "Commiting the following files to version-control using git: %s",
@@ -288,7 +245,7 @@ def run_kind(args: KindConfig) -> int:
             stdout=sys.stdout,
             stderr=sys.stderr,
         ).unwrap()
-    elif args.commit_changes:
+    elif cfg.commit_changes:
         assert (
             old_lines == new_lines
         ), f"Logic Error ({old_lines!r} != {new_lines!r})!"
@@ -297,14 +254,14 @@ def run_kind(args: KindConfig) -> int:
     return 0
 
 
-def run_info(args: InfoConfig) -> int:
+def run_info(cfg: InfoConfig) -> int:
     """TODO"""
     data: Dict[str, Any] = {}
 
     data["bullets"] = []
-    if list(iter_bullet_files(args.changelog_dir)):
+    if list(iter_bullet_files(cfg.changelog_dir)):
         kind_to_bullets_map = read_bullets_from_changelog_dir(
-            args.changelog_dir
+            cfg.changelog_dir
         ).unwrap()
         bullets = it.chain.from_iterable(kind_to_bullets_map.values())
 
@@ -697,6 +654,6 @@ def iter_bullet_files(changelog_dir: PathLike) -> Iterator[Path]:
             yield path
 
 
-main = clack.main_factory(run, Config)
-if __name__ == "__main__":
-    sys.exit(main())
+main = clack.main_factory(
+    "cldr", runners=[run_build, run_info, run_new], parser=clack_parser
+)

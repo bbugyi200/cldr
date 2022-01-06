@@ -5,7 +5,22 @@ from __future__ import annotations
 from typing import Dict, Final, Literal
 
 
-Kind = Literal["add", "chg", "dep", "fix", "misc", "rm", "sec"]
+AddKind = Literal["add"]
+ChgKind = Literal["chg"]
+DepKind = Literal["dep"]
+FixKind = Literal["fix"]
+MiscKind = Literal["misc"]
+RmKind = Literal["rm"]
+SecKind = Literal["sec"]
+Kind = Literal[
+    AddKind,
+    ChgKind,
+    DepKind,
+    FixKind,
+    MiscKind,
+    RmKind,
+    SecKind,
+]
 
 KIND_TO_SECTION_MAP: Final[Dict[Kind, str]] = {
     "add": "Added",
