@@ -59,15 +59,19 @@ Command = Literal[
 class Config(clack.Config):
     """TODO"""
 
-    changelog_dir: Path = Path("changelog")
     command: Command
+
+    # --- Options
+    changelog_dir: Path = Path("changelog")
 
 
 class BuildConfig(Config):
     """TODO"""
 
-    changelog: Path = Path("CHANGELOG.md")
     command: BUildCommand
+
+    # --- OPTIONS
+    changelog: Path = Path("CHANGELOG.md")
     in_place: bool = False
     new_version: str
 
@@ -75,13 +79,14 @@ class BuildConfig(Config):
 class NewConfig(Config):
     """TODO"""
 
-    # --- Postional
-    kind: Kind
-    body: Optional[str] = None
-
-    # --- Optional
-    bullet_file_name: Optional[str] = None
     command: NewCommand
+
+    # --- ARGS
+    kind: Kind
+
+    # --- OPTIONS
+    body: Optional[str] = None
+    bullet_file_name: Optional[str] = None
     commit_changes: bool = True
     tags: Optional[List[str]] = None
 
