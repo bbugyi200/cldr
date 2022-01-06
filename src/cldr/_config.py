@@ -36,16 +36,13 @@ Examples:
 #   clack parser function.
 from __future__ import annotations
 
-from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Sequence
+from typing import Any, List, Literal, Optional, Sequence
 
 import clack
-from eris import ErisError, Err, Ok, Result
-import toml
 from typist import literal_to_list
 
-from ._constants import PROJECT_NAME, Kind
+from ._constants import Kind
 
 
 BuildCommand = Literal["build"]
@@ -63,6 +60,10 @@ class Config(clack.Config):
 
     # --- OPTIONS
     changelog_dir: Path = Path("changelog")
+
+    # --- CONFIG
+    github_repo: str
+    jira_org: Optional[str] = None
 
 
 class BuildConfig(Config):
@@ -95,59 +96,6 @@ class InfoConfig(Config):
     """TODO"""
 
     command: InfoCommand
-
-
-@lru_cache
-def github_repo() -> str:
-    """TODO"""
-    conf = _get_conf().unwrap()
-    result: Optional[str] = conf.get("github_repo")
-    assert result is not None
-    return result
-
-
-@lru_cache
-def jira_org() -> Optional[str]:
-    """TODO"""
-    conf = _get_conf().unwrap()
-
-    result: Optional[str] = conf.get("jira_org")
-    if result is None:
-        return None
-    else:
-        return result.upper()
-
-
-@lru_cache
-def _get_conf() -> Result[Dict[str, Any], ErisError]:
-    def error(emsg: str) -> Err[Any, ErisError]:
-        return Err(
-            "{}\n\nIn order to use the 'cldr' script, this project's"
-            " pyproject.toml file must have a [tool.cldr] section that defines"
-            " a 'github_repo' option and (optionally) a 'jira_org' option."
-            .format(emsg)
-        )
-
-    pyproject_toml = Path("pyproject.toml")
-    if pyproject_toml.exists():
-        conf = toml.loads(pyproject_toml.read_text())
-    else:
-        return error("The pyproject.toml file does not exist.")
-
-    result = conf.get("tool", {}).get(PROJECT_NAME)
-    if result is None:
-        return error(
-            f"The pyproject.toml file does not contain a [tool.{PROJECT_NAME}]"
-            " section."
-        )
-
-    if result.get("github_repo") is None:
-        return error(
-            "The [tool.cldr] section in the pyproject.toml file does not set"
-            " the 'github_repo' option."
-        )
-
-    return Ok(result)
 
 
 def clack_parser(argv: Sequence[str]) -> dict[str, Any]:

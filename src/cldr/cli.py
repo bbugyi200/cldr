@@ -34,14 +34,7 @@ import proctor
 from pydantic.dataclasses import dataclass
 from typist import PathLike, literal_to_list
 
-from ._config import (
-    BuildConfig,
-    InfoConfig,
-    NewConfig,
-    clack_parser,
-    github_repo,
-    jira_org,
-)
+from ._config import BuildConfig, Config, InfoConfig, NewConfig, clack_parser
 from ._constants import (
     BULLET_EXPLANATION,
     KIND_TO_SECTION_MAP,
@@ -64,7 +57,7 @@ def run_build(cfg: BuildConfig) -> int:
 
     unreleased_section_start: Optional[int] = None
     unreleased_section_end: Optional[int] = None
-    kind_to_bullets_map_r = read_bullets_from_changelog_dir(cfg.changelog_dir)
+    kind_to_bullets_map_r = read_bullets_from_changelog_dir(cfg)
     if isinstance(kind_to_bullets_map_r, Err):
         e = kind_to_bullets_map_r.err()
         logger.error(
@@ -101,7 +94,7 @@ def run_build(cfg: BuildConfig) -> int:
             " have the following form: '%s(%s/compare/X.Y.Z...HEAD)'",
             cfg.changelog,
             UNRELEASED_TITLE,
-            github_repo(),
+            cfg.github_repo,
         )
         return 1
 
@@ -109,14 +102,14 @@ def run_build(cfg: BuildConfig) -> int:
 
     new_contents = "\n".join(old_lines[:unreleased_section_start]) + "\n"
     new_contents += "{}({}/compare/{}...HEAD)\n".format(
-        UNRELEASED_TITLE, github_repo(), cfg.new_version
+        UNRELEASED_TITLE, cfg.github_repo, cfg.new_version
     )
     new_contents += (
-        f"\n{UNRELEASED_BEGIN(cfg.changelog_dir.name, github_repo())}\n\n"
+        f"\n{UNRELEASED_BEGIN(cfg.changelog_dir.name, cfg.github_repo)}\n\n"
     )
 
     if unreleased_section_end is None:
-        new_version_url = f"{github_repo()}/releases/tag/{cfg.new_version}"
+        new_version_url = f"{cfg.github_repo}/releases/tag/{cfg.new_version}"
     else:
         old_version_r = get_version(old_lines[unreleased_section_end])
         if isinstance(old_version_r, Err):
@@ -130,7 +123,7 @@ def run_build(cfg: BuildConfig) -> int:
 
         old_version = old_version_r.ok()
         new_version_url = (
-            f"{github_repo()}/compare/{old_version}...{cfg.new_version}"
+            f"{cfg.github_repo}/compare/{old_version}...{cfg.new_version}"
         )
 
     version_part = f"[{cfg.new_version}]({new_version_url})"
@@ -262,9 +255,7 @@ def run_info(cfg: InfoConfig) -> int:
 
     data["bullets"] = []
     if list(iter_bullet_files(cfg.changelog_dir)):
-        kind_to_bullets_map = read_bullets_from_changelog_dir(
-            cfg.changelog_dir
-        ).unwrap()
+        kind_to_bullets_map = read_bullets_from_changelog_dir(cfg).unwrap()
         bullets = it.chain.from_iterable(kind_to_bullets_map.values())
 
         for bullet in sorted(bullets, key=attrgetter("kind")):
@@ -355,6 +346,7 @@ class BulletConfig:
 class Bullet:
     """TODO"""
 
+    cfg: Config
     line: str
     changelog_dir: Path
     kind: Kind
@@ -363,7 +355,7 @@ class Bullet:
 
     @classmethod
     def from_string(
-        cls, line: str, changelog_dir: PathLike = "changelog"
+        cls, cfg: Config, line: str, changelog_dir: PathLike = "changelog"
     ) -> Result["Bullet", ErisError]:
         """TODO"""
         changelog_dir = Path(changelog_dir)
@@ -405,6 +397,7 @@ class Bullet:
 
             return Ok(
                 cls(
+                    cfg,
                     line,
                     changelog_dir,
                     kind,
@@ -469,16 +462,22 @@ def _github_tag_regexp(char: str) -> str:
 
 
 def _github_tag_transform_bullet(
-    char: str, url_node: str, tag: str, bullet_line: str, *, prefix: str = ""
+    github_repo: str,
+    char: str,
+    url_node: str,
+    tag: str,
+    bullet_line: str,
+    *,
+    prefix: str = "",
 ) -> str:
     if tag.startswith(char):
-        url = f"{github_repo()}/{url_node}/{tag.replace(char, '')}"
+        url = f"{github_repo}/{url_node}/{tag.replace(char, '')}"
     elif "/" in tag:
-        github_url = "/".join(github_repo().split("/")[:-2])
+        github_url = "/".join(github_repo.split("/")[:-2])
         org_and_repo, N = tag.split(char)
         url = f"{github_url}/{org_and_repo}/{url_node}/{N}"
     else:
-        github_org_url = "/".join(github_repo().split("/")[:-1])
+        github_org_url = "/".join(github_repo.split("/")[:-1])
         repo_name, N = tag.split(char)
         url = f"{github_org_url}/{repo_name}/{url_node}/{N}"
 
@@ -492,10 +491,10 @@ class GithubIssue(TagMixin):
 
     regexp = _github_tag_regexp("#")
 
-    def transform_bullet(self, _bullet: Bullet, bullet_line: str) -> str:
+    def transform_bullet(self, bullet: Bullet, bullet_line: str) -> str:
         """TODO"""
         return _github_tag_transform_bullet(
-            "#", "issues", self.tag, bullet_line
+            bullet.cfg.github_repo, "#", "issues", self.tag, bullet_line
         )
 
 
@@ -505,10 +504,15 @@ class GithubPullRequest(TagMixin):
 
     regexp = _github_tag_regexp("!")
 
-    def transform_bullet(self, _bullet: Bullet, bullet_line: str) -> str:
+    def transform_bullet(self, bullet: Bullet, bullet_line: str) -> str:
         """TODO"""
         return _github_tag_transform_bullet(
-            "!", "pull", self.tag, bullet_line, prefix="PR:"
+            bullet.cfg.github_repo,
+            "!",
+            "pull",
+            self.tag,
+            bullet_line,
+            prefix="PR:",
         )
 
 
@@ -518,18 +522,18 @@ class JiraIssue(TagMixin):
 
     regexp = r"(?:[A-Za-z]+-)?[1-9][0-9]*"
 
-    def transform_bullet(self, _bullet: Bullet, bullet_line: str) -> str:
+    def transform_bullet(self, bullet: Bullet, bullet_line: str) -> str:
         """TODO"""
         tag = self.tag
         if tag[0].isdigit():
-            if jira_org() is None:
+            if bullet.cfg.jira_org is None:
                 raise ValueError(
                     "The following line appears to reference a jira issue"
                     f" ({tag}) but the 'jira_org' option is not set in"
                     f" this project's pyproject.toml file: {tag!r}"
                 )
 
-            tag = f"{jira_org()}-{tag}"
+            tag = f"{bullet.cfg.jira_org}-{tag}"
 
         tag = tag.upper()
         jira_link = f"[{tag}](https://jira.prod.bloomberg.com/browse/{tag})"
@@ -585,7 +589,9 @@ class RelativeCommitTag(TagMixin):
 
             bullet_line = bullet_line.replace("...", subject)
 
-        commit_link = f"[{short_hash}]({github_repo()}/commit/{long_hash})"
+        commit_link = (
+            f"[{short_hash}]({bullet.cfg.github_repo}/commit/{long_hash})"
+        )
         return _add_tag_to_paren_group(bullet_line, commit_link)
 
 
@@ -599,7 +605,7 @@ def _add_tag_to_paren_group(bullet_line: str, tag: str) -> str:
 
 
 def read_bullets_from_changelog_dir(
-    changelog_dir: PathLike,
+    cfg: Config,
 ) -> Result[Dict[Kind, List[Bullet]], ErisError]:
     """
     Arguments:
@@ -612,13 +618,11 @@ def read_bullets_from_changelog_dir(
             OR
         Err(ErisError), otherwise.
     """
-    changelog_dir = Path(changelog_dir)
-
-    if not changelog_dir.exists():
+    if not cfg.changelog_dir.exists():
         return Err("The changelog directory does not exist.")
 
     bullet_lines: Iterable[str] = []
-    for path in iter_bullet_files(changelog_dir):
+    for path in iter_bullet_files(cfg.changelog_dir):
         logger.info("Consuming bullets from the %s file...", path)
         bullet_lines = it.chain(bullet_lines, path.read_text().split("\n"))
 
@@ -634,7 +638,7 @@ def read_bullets_from_changelog_dir(
         if not line:
             continue
 
-        bullet_r = Bullet.from_string(line, changelog_dir)
+        bullet_r = Bullet.from_string(cfg, line, cfg.changelog_dir)
         if isinstance(bullet_r, Err):
             err: Err[Any, ErisError] = Err(
                 "There was a problem parsing one of the changelog"
