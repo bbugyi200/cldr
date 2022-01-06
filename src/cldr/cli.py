@@ -44,6 +44,7 @@ from ._config import (
 from ._constants import (
     BULLET_EXPLANATION,
     KIND_TO_SECTION_MAP,
+    PROJECT_NAME,
     README_CONTENTS,
     UNRELEASED_BEGIN,
     Kind,
@@ -655,5 +656,5 @@ def iter_bullet_files(changelog_dir: PathLike) -> Iterator[Path]:
 
 
 main = clack.main_factory(
-    "cldr", runners=[run_build, run_info, run_new], parser=clack_parser
+    PROJECT_NAME, runners=[run_build, run_info, run_new], parser=clack_parser
 )
