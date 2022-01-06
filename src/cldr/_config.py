@@ -59,14 +59,14 @@ Command = Literal[
 class Config(clack.Config):
     """TODO"""
 
-    changelog_dir: Path
+    changelog_dir: Path = Path("changelog")
     command: Command
 
 
 class BuildConfig(Config):
     """TODO"""
 
-    changelog: Path = "CHANGELOG.md"  # type: ignore[assignment]
+    changelog: Path = Path("CHANGELOG.md")
     command: BUildCommand
     in_place: bool = False
     new_version: str
@@ -151,7 +151,6 @@ def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
     parser.add_argument(
         "--changelog-dir",
         type=Path,
-        default=Path("changelog"),
         help=(
             "Can be used to explicitly specify the path of the changelog"
             " directory where unreleased change bullets are stored."
@@ -238,7 +237,6 @@ def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
     new_parser.add_argument(
         "-B",
         "--bullet-file-name",
-        default=None,
         help=(
             "The basename of the bullet file which we will add this"
             " changelog bullet to. Defaults to a bullet filename of"
