@@ -61,7 +61,7 @@ class Config(clack.Config):
 
     command: Command
 
-    # --- Options
+    # --- OPTIONS
     changelog_dir: Path = Path("changelog")
 
 
