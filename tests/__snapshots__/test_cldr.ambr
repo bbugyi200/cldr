@@ -24,7 +24,7 @@
   * Adding some feature.
   
   
-  ## [0.9.9](https://bbgithub.dev.bloomberg.com/ComplianceSRE/tools/compare/0.9.8...0.9.9) - 2021-08-08
+  ## [0.9.9](https://github.com/bbugyi200/cldr/compare/0.9.8...0.9.9) - 2021-08-08
   
   ### Fixed
   
@@ -82,10 +82,10 @@
   
   ### Changed
   
-  * Changing some feature. ([FOO-103](https://jira.prod.bloomberg.com/browse/FOO-103), [PR:#123](https://github.com/bbugyi200/cldr/pull/123), [python-libs#456](https://github.com/bbugyi200/python-libs/issues/456))
+  * Changing some feature. ([FOO-103](https://jira.prod.company.com/browse/FOO-103), [PR:#123](https://github.com/bbugyi200/cldr/pull/123), [python-libs#456](https://github.com/bbugyi200/python-libs/issues/456))
   
   
-  ## [0.9.9](https://bbgithub.dev.bloomberg.com/ComplianceSRE/tools/compare/0.9.8...0.9.9) - 2021-08-08
+  ## [0.9.9](https://github.com/bbugyi200/cldr/compare/0.9.8...0.9.9) - 2021-08-08
   
   ### Fixed
   
@@ -116,7 +116,7 @@
   
   ### Changed
   
-  * Changing some feature. ([FOO-103](https://jira.prod.bloomberg.com/browse/FOO-103), [PR:#123](https://github.com/bbugyi200/cldr/pull/123), [python-libs#456](https://github.com/bbugyi200/python-libs/issues/456))
+  * Changing some feature. ([FOO-103](https://jira.prod.company.com/browse/FOO-103), [PR:#123](https://github.com/bbugyi200/cldr/pull/123), [python-libs#456](https://github.com/bbugyi200/python-libs/issues/456))
   
   '
 ---
@@ -143,10 +143,10 @@
   
   ### Removed
   
-  * Removing some feature. ([FOO-103](https://jira.prod.bloomberg.com/browse/FOO-103))
+  * Removing some feature. ([FOO-103](https://jira.prod.company.com/browse/FOO-103))
   
   
-  ## [0.9.9](https://bbgithub.dev.bloomberg.com/ComplianceSRE/tools/compare/0.9.8...0.9.9) - 2021-08-08
+  ## [0.9.9](https://github.com/bbugyi200/cldr/compare/0.9.8...0.9.9) - 2021-08-08
   
   ### Fixed
   
@@ -177,7 +177,7 @@
   
   ### Removed
   
-  * Removing some feature. ([FOO-103](https://jira.prod.bloomberg.com/browse/FOO-103))
+  * Removing some feature. ([FOO-103](https://jira.prod.company.com/browse/FOO-103))
   
   '
 ---

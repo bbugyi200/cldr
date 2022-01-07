@@ -14,6 +14,7 @@ from typing import (
     runtime_checkable,
 )
 
+from eris import ErisError, Err, Ok, Result
 import proctor
 
 from ._helpers import iter_bullet_files
@@ -37,7 +38,9 @@ class Tag(Protocol):
     def __init__(self, tag: str) -> None:
         pass
 
-    def transform_bullet(self, bullet: "Bullet", bullet_line: str) -> str:
+    def transform_bullet(
+        self, bullet: "Bullet", bullet_line: str
+    ) -> Result[str, ErisError]:
         """TODO"""
 
 
@@ -61,7 +64,9 @@ class BreakingChangeTag(TagMixin):
     regexp = r"bc"
 
     @staticmethod
-    def transform_bullet(bullet: Bullet, bullet_line: str) -> str:
+    def transform_bullet(
+        bullet: Bullet, bullet_line: str
+    ) -> Result[str, ErisError]:
         """TODO"""
         from ._constants import Kind
 
@@ -73,7 +78,7 @@ class BreakingChangeTag(TagMixin):
                 f" {bullet.line!r}"
             )
 
-        return "* *BREAKING CHANGE*: " + bullet_line[2:]
+        return Ok("* *BREAKING CHANGE*: " + bullet_line[2:])
 
 
 def _github_tag_regexp(char: str) -> str:
@@ -112,11 +117,14 @@ class GithubIssue(TagMixin):
 
     regexp = _github_tag_regexp("#")
 
-    def transform_bullet(self, bullet: Bullet, bullet_line: str) -> str:
+    def transform_bullet(
+        self, bullet: Bullet, bullet_line: str
+    ) -> Result[str, ErisError]:
         """TODO"""
-        return _github_tag_transform_bullet(
+        result = _github_tag_transform_bullet(
             bullet.cfg.github_repo, "#", "issues", self.tag, bullet_line
         )
+        return Ok(result)
 
 
 @register_tag
@@ -125,9 +133,11 @@ class GithubPullRequest(TagMixin):
 
     regexp = _github_tag_regexp("!")
 
-    def transform_bullet(self, bullet: Bullet, bullet_line: str) -> str:
+    def transform_bullet(
+        self, bullet: Bullet, bullet_line: str
+    ) -> Result[str, ErisError]:
         """TODO"""
-        return _github_tag_transform_bullet(
+        result = _github_tag_transform_bullet(
             bullet.cfg.github_repo,
             "!",
             "pull",
@@ -135,6 +145,7 @@ class GithubPullRequest(TagMixin):
             bullet_line,
             prefix="PR:",
         )
+        return Ok(result)
 
 
 @register_tag
@@ -143,22 +154,34 @@ class JiraIssue(TagMixin):
 
     regexp = r"(?:[A-Za-z]+-)?[1-9][0-9]*"
 
-    def transform_bullet(self, bullet: Bullet, bullet_line: str) -> str:
+    def transform_bullet(
+        self, bullet: Bullet, bullet_line: str
+    ) -> Result[str, ErisError]:
         """TODO"""
+        cfg = bullet.cfg
         tag = self.tag
+
+        if cfg.jira_base_url is None:
+            return Err(
+                "The 'jira_base_url' configuration option MUST be set in order"
+                " to use the {self.__class__.__name__} changelog bullet tag."
+            )
+
         if tag[0].isdigit():
-            if bullet.cfg.jira_org is None:
-                raise ValueError(
+            if cfg.jira_org is None:
+                return Err(
                     "The following line appears to reference a jira issue"
                     f" ({tag}) but the 'jira_org' option is not set in"
                     f" this project's pyproject.toml file: {tag!r}"
                 )
 
-            tag = f"{bullet.cfg.jira_org}-{tag}"
+            tag = f"{cfg.jira_org}-{tag}"
 
         tag = tag.upper()
-        jira_link = f"[{tag}](https://jira.prod.bloomberg.com/browse/{tag})"
-        return _add_tag_to_paren_group(bullet_line, jira_link)
+        jira_link = f"[{tag}]({cfg.jira_base_url}/browse/{tag})"
+
+        result = _add_tag_to_paren_group(bullet_line, jira_link)
+        return Ok(result)
 
 
 @register_tag
@@ -167,7 +190,9 @@ class RelativeCommitTag(TagMixin):
 
     regexp = r"c(?:0|[1-9][0-9]*)"
 
-    def transform_bullet(self, bullet: Bullet, bullet_line: str) -> str:
+    def transform_bullet(
+        self, bullet: Bullet, bullet_line: str
+    ) -> Result[str, ErisError]:
         """TODO"""
         bullet_file: Optional[Path] = None
         bullet_line_number: Optional[int] = None
@@ -213,7 +238,9 @@ class RelativeCommitTag(TagMixin):
         commit_link = (
             f"[{short_hash}]({bullet.cfg.github_repo}/commit/{long_hash})"
         )
-        return _add_tag_to_paren_group(bullet_line, commit_link)
+
+        result = _add_tag_to_paren_group(bullet_line, commit_link)
+        return Ok(result)
 
 
 def _add_tag_to_paren_group(bullet_line: str, tag: str) -> str:

@@ -21,11 +21,11 @@ CONTENTS1 = """\
 All notable changes to this project will be documented in this file.
 
 
-## [Unreleased](https://bbgithub.dev.bloomberg.com/ComplianceSRE/tools/compare/0.9.9...HEAD)
+## [Unreleased](https://github.com/bbugyi200/cldr/compare/0.9.9...HEAD)
 
 This section's contents will just be overwritten by cldr anyway.
 
-## [0.9.9](https://bbgithub.dev.bloomberg.com/ComplianceSRE/tools/compare/0.9.8...0.9.9) - 2021-08-08
+## [0.9.9](https://github.com/bbugyi200/cldr/compare/0.9.8...0.9.9) - 2021-08-08
 
 ### Fixed
 

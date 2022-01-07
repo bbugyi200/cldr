@@ -63,6 +63,7 @@ class Config(clack.Config):
 
     # --- CONFIG
     github_repo: str
+    jira_base_url: Optional[str] = None
     jira_org: Optional[str] = None
 
 

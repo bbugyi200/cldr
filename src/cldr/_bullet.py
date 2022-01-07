@@ -95,7 +95,7 @@ class Bullet:
         result = f"* {self.body}"
 
         for tag in self.tags:
-            result = tag.transform_bullet(self, result)
+            result = tag.transform_bullet(self, result).unwrap()
 
         result += "\n"
         return result
