@@ -6,6 +6,10 @@ current_version: "0.2.0"
 # URL of this project's github repository.
 github_repo: "https://github.com/bbugyi200/cldr"
 
+# Should we infer the version part (e.g. 'minor') to bump based on what type of
+# changelog bullets will be rendered for the next release?
+infer_version_part: true
+
 # Fake Jira base URL (for tests)... Remove ASAP.
 jira_base_url: "https://jira.prod.company.com"
 
