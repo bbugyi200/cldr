@@ -62,6 +62,7 @@ class Config(clack.Config):
     changelog_dir: Path = Path("changelog")
 
     # --- CONFIG
+    current_version: str
     github_repo: str
     infer_version_part: bool = False
     jira_base_url: Optional[str] = None
