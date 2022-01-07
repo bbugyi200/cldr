@@ -16,3 +16,5 @@ logger = Logger(__name__)
 main = clack.main_factory(
     PROJECT_NAME, runners=[run_build, run_info, run_new], parser=clack_parser
 )
+if __name__ == "__main__":
+    main()
