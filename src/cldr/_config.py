@@ -7,28 +7,28 @@ Examples:
     # Updates CHANGELOG.md in-place.
     cldr build -V 1.2.3 -i
 
+    # Print internal cldr information to STDOUT as JSON data.
+    cldr info
+
     # Add a new bullet to the 'Added' section of the next release's
     # CHANGELOG.md section.
-    cldr add "Added new feature."
+    cldr new add -b "Added new feature."
 
     # Add a new bullet to the 'Added' section of the next release's
     # CHANGELOG.md section, which is related to the CSRE-123 jira issue.
-    cldr add -t csre-123 "Added new feature."
+    cldr new add -t csre-123 -b "Added new feature."
 
     # Add a new bullet to the 'Fixed' section...
-    cldr fix "Fixed a bug."
+    cldr new fix -b "Fixed a bug."
 
     # Add a new bullet to the 'Miscellaneous' section...
-    cldr misc "Did something unreleated to any feature."
+    cldr new misc -b "Did something unreleated to any feature."
 
     # Add a new bullet to the 'Changed' section...
-    cldr mod "Changed an existing feature."
+    cldr new chg -b "Changed an existing feature."
 
     # Add a new bullet to the 'Removed' section...
-    cldr rm "Removed an existing feature."
-
-    # Print internal cldr information to STDOUT as JSON data.
-    cldr info
+    cldr new rm -b "Removed an existing feature."
 """
 
 # NOTE: The above docstring is used by clack for the command-line --help
@@ -63,6 +63,7 @@ class Config(clack.Config):
 
     # --- CONFIG
     github_repo: str
+    infer_version_part: bool = False
     jira_base_url: Optional[str] = None
     jira_org: Optional[str] = None
 
