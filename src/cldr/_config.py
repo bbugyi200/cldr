@@ -90,6 +90,9 @@ class BumpConfig(Config):
     # --- ARGS
     part: BumpPart
 
+    # --- OPTIONS
+    commit_changes: bool = True
+
 
 class InfoConfig(Config):
     """Config for the 'info' subcommand."""
@@ -127,6 +130,7 @@ def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
 
     new_command = clack.new_command_factory(parser)
 
+    ### setup the 'build' subcommand...
     build_parser = new_command(
         "build",
         help=(
@@ -154,10 +158,43 @@ def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
         ),
     )
 
+    ### setup the 'bump' subcommand...
+    bump_parser = new_command(
+        "bump",
+        help=(
+            "Configure this repository to release a new PART version (i.e."
+            " 'major', 'minor', or 'patch') on the next merge into master."
+        ),
+    )
+
+    choices = literal_to_list(BumpPart)
+    bump_parser.add_argument(
+        "part",
+        metavar="PART",
+        choices=choices,
+        help=(
+            "The part of the semantic version to bump forward. Choose from"
+            f" one of {choices}."
+        ),
+    )
+
+    bump_parser.add_argument(
+        "-n",
+        "--no-commit",
+        dest="commit_changes",
+        action="store_false",
+        help=(
+            "Specify this option if you do NOT want to commit these changes"
+            " using git."
+        ),
+    )
+
+    ### setup the 'info' subcommand...
     new_command(
         "info", help="Print internal state to standard output as JSON."
     )
 
+    ### setup the 'new' subcommand...
     new_parser = new_command(
         "new",
         help="Add a new bullet to the KIND section of the next release.",
@@ -173,6 +210,7 @@ def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
             f" added. Choose from one of {choices}."
         ),
     )
+
     new_parser.add_argument(
         "-b",
         "--body",

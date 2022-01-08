@@ -15,7 +15,7 @@ from eris import Err
 from logrus import Logger
 import proctor
 
-from ._config import BuildConfig, InfoConfig, NewConfig
+from ._config import BuildConfig, BumpConfig, InfoConfig, NewConfig
 from ._constants import KIND_TO_SECTION_MAP, README_CONTENTS, UNRELEASED_BEGIN
 from ._helpers import (
     get_branch,
@@ -137,6 +137,20 @@ def run_build(cfg: BuildConfig) -> int:
         for path in iter_bullet_files(cfg.changelog_dir):
             path.unlink()
 
+    return 0
+
+
+def run_bump(cfg: BumpConfig) -> int:
+    """Clack runner for the 'bump' subcommand."""
+    print(
+        json.dumps(
+            {
+                k: str(v) if isinstance(v, Path) else v
+                for (k, v) in cfg.dict().items()
+            },
+            sort_keys=True,
+        )
+    )
     return 0
 
 
