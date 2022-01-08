@@ -3,11 +3,16 @@
 https://docs.pytest.org/en/6.2.x/fixture.html#conftest-py-sharing-fixtures-across-multiple-files
 """
 
+from __future__ import annotations
+
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from clack import ConfigFile
-from clack.pytest_plugin import MakeConfigFile
 from pytest import fixture
+
+if TYPE_CHECKING:  # fixes pytest warning
+    from clack.pytest_plugin import MakeConfigFile
 
 
 pytest_plugins = ["clack.pytest_plugin"]
