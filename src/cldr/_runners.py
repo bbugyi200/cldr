@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import datetime as dt
-import itertools as it
 import json
-from operator import attrgetter
 from pathlib import Path
 import subprocess as sp
 import sys
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from eris import Err
 from logrus import Logger
@@ -20,6 +18,7 @@ from ._constants import KIND_TO_SECTION_MAP, README_CONTENTS, UNRELEASED_BEGIN
 from ._helpers import (
     get_branch,
     get_editor_cmd_list,
+    get_info,
     get_user,
     get_version,
     iter_bullet_files,
@@ -31,7 +30,7 @@ logger = Logger(__name__)
 
 
 def run_build(cfg: BuildConfig) -> int:
-    """TODO"""
+    """Clack runner for the 'build' subcommand."""
     UNRELEASED_TITLE = "## [Unreleased]"
 
     unreleased_section_start: Optional[int] = None
@@ -155,7 +154,7 @@ def run_bump(cfg: BumpConfig) -> int:
 
 
 def run_new(cfg: NewConfig) -> int:
-    """TODO"""
+    """Clack runner for the 'new' subcommand."""
     if not cfg.changelog_dir.exists():
         logger.info("Creating %s directory...", cfg.changelog_dir)
         cfg.changelog_dir.mkdir(parents=True)
@@ -243,29 +242,7 @@ def run_new(cfg: NewConfig) -> int:
 
 
 def run_info(cfg: InfoConfig) -> int:
-    """TODO"""
-    data: Dict[str, Any] = {}
-
-    data["bullets"] = []
-    if list(iter_bullet_files(cfg.changelog_dir)):
-        kind_to_bullets_map = read_bullets_from_changelog_dir(cfg).unwrap()
-        bullets = it.chain.from_iterable(kind_to_bullets_map.values())
-
-        for bullet in sorted(bullets, key=attrgetter("kind")):
-            data["bullets"].append(
-                dict(
-                    kind=bullet.kind,
-                    body=bullet.body,
-                    tags=[tag.tag for tag in bullet.tags],
-                )
-            )
-    else:
-        logger.warning("No bullet files found.")
-
-    data["config"] = {
-        k: str(v) if isinstance(v, Path) else v
-        for (k, v) in cfg.dict().items()
-    }
-
-    print(json.dumps(data, sort_keys=True))
+    """Clack runner for the 'info' subcommand."""
+    info = get_info(cfg)
+    print(json.dumps(info, sort_keys=True))
     return 0

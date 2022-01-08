@@ -5,10 +5,11 @@ from __future__ import annotations
 from collections import defaultdict
 from functools import lru_cache
 import itertools as it
+from operator import attrgetter
 import os
 from pathlib import Path
 import re
-from typing import TYPE_CHECKING, Any, Iterable, Iterator
+from typing import TYPE_CHECKING, Any, Dict, Iterable, Iterator
 
 from eris import ErisError, Err, Ok, Result
 from logrus import Logger
@@ -131,3 +132,30 @@ def get_branch() -> str:
         ["git", "branch", "--show-current"]
     ).unwrap()
     return branch
+
+
+def get_info(cfg: Config) -> dict[str, Any]:
+    result: Dict[str, Any] = {}
+
+    result["bullets"] = []
+    if list(iter_bullet_files(cfg.changelog_dir)):
+        kind_to_bullets_map = read_bullets_from_changelog_dir(cfg).unwrap()
+        bullets = it.chain.from_iterable(kind_to_bullets_map.values())
+
+        for bullet in sorted(bullets, key=attrgetter("kind")):
+            result["bullets"].append(
+                dict(
+                    kind=bullet.kind,
+                    body=bullet.body,
+                    tags=[tag.tag for tag in bullet.tags],
+                )
+            )
+    else:
+        logger.warning("No bullet files found.")
+
+    result["config"] = {
+        k: str(v) if isinstance(v, Path) else v
+        for (k, v) in cfg.dict().items()
+    }
+
+    return result
