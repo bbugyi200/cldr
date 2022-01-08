@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Iterable, Sequence
 
@@ -65,4 +66,9 @@ def test_info(
 
     cldr_main(["", "--changelog-dir", str(changelog_dir), "info"])
     captured = capsys.readouterr()
-    assert captured.out == snapshot
+    info_dict = json.loads(captured.out)
+
+    for key in ["changelog_dir", "config_file"]:
+        del info_dict["config"][key]
+
+    assert info_dict == snapshot

@@ -6,6 +6,7 @@ import datetime as dt
 import itertools as it
 import json
 from operator import attrgetter
+from pathlib import Path
 import subprocess as sp
 import sys
 from typing import Any, Dict, Optional
@@ -247,7 +248,10 @@ def run_info(cfg: InfoConfig) -> int:
     else:
         logger.warning("No bullet files found.")
 
-    data["config"] = {k: str(v) for (k, v) in cfg.dict().items()}
+    data["config"] = {
+        k: str(v) if isinstance(v, Path) else v
+        for (k, v) in cfg.dict().items()
+    }
 
     print(json.dumps(data, sort_keys=True))
     return 0

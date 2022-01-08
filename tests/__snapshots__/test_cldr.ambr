@@ -1,8 +1,35 @@
 # name: test_info
-  '
-  {"bullets": [{"kind": "add", "body": "Add some new feature.", "tags": ["123", "!5"]}, {"kind": "rm", "body": "Remove some old feature.", "tags": ["!6", "bc"]}]}
-  
-  '
+  <class 'dict'> {
+    'bullets': <class 'list'> [
+      <class 'dict'> {
+        'body': 'Add some new feature.',
+        'kind': 'add',
+        'tags': <class 'list'> [
+          '123',
+          '!5',
+        ],
+      },
+      <class 'dict'> {
+        'body': 'Remove some old feature.',
+        'kind': 'rm',
+        'tags': <class 'list'> [
+          '!6',
+          'bc',
+        ],
+      },
+    ],
+    'config': <class 'dict'> {
+      'command': 'info',
+      'current_version': '0.2.0',
+      'github_repo': 'https://github.com/bbugyi200/cldr',
+      'infer_version_part': True,
+      'jira_base_url': None,
+      'jira_org': None,
+      'logs': <class 'list'> [
+      ],
+      'verbose': 0,
+    },
+  }
 ---
 # name: test_new[bullets0-args0]
   '
