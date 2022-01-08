@@ -17,6 +17,9 @@ pydocstyle[toml]
 pylint
 
 ### TYPES
+types-pyyaml ~= 6.0
+
+### TYPES
 types-toml
 
 ### Docs

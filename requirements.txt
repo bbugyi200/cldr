@@ -30,7 +30,9 @@ bolton-typist==0.1.1
 pydantic==1.9.0
     # via bolton-clack
 pyyaml==6.0
-    # via bolton-clack
+    # via
+    #   -r requirements.in
+    #   bolton-clack
 structlog==21.5.0
     # via bolton-logrus
 toml==0.10.2
