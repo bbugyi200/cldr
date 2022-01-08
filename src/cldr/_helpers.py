@@ -135,6 +135,7 @@ def get_branch() -> str:
 
 
 def get_info(cfg: Config) -> dict[str, Any]:
+    """Returns a dict containing information on cldr's current state."""
     result: Dict[str, Any] = {}
 
     result["bullets"] = []

@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import subprocess as sp
 import sys
-from typing import Optional
+from typing import Any, Callable, List, Optional
 
 from eris import Err
 from logrus import Logger
@@ -28,7 +28,19 @@ from ._helpers import (
 
 logger = Logger(__name__)
 
+Runner = Callable[[Any], int]
 
+# The ALL_RUNNERS list is populated later by the `register_tag` decorator.
+ALL_RUNNERS: List[Runner] = []
+
+
+def register_runner(runner: Runner) -> Runner:
+    """Register a clack runner function."""
+    ALL_RUNNERS.append(runner)
+    return runner
+
+
+@register_runner
 def run_build(cfg: BuildConfig) -> int:
     """Clack runner for the 'build' subcommand."""
     UNRELEASED_TITLE = "## [Unreleased]"
@@ -139,6 +151,7 @@ def run_build(cfg: BuildConfig) -> int:
     return 0
 
 
+@register_runner
 def run_bump(cfg: BumpConfig) -> int:
     """Clack runner for the 'bump' subcommand."""
     print(
@@ -153,6 +166,7 @@ def run_bump(cfg: BumpConfig) -> int:
     return 0
 
 
+@register_runner
 def run_new(cfg: NewConfig) -> int:
     """Clack runner for the 'new' subcommand."""
     if not cfg.changelog_dir.exists():
@@ -241,6 +255,7 @@ def run_new(cfg: NewConfig) -> int:
     return 0
 
 
+@register_runner
 def run_info(cfg: InfoConfig) -> int:
     """Clack runner for the 'info' subcommand."""
     info = get_info(cfg)
