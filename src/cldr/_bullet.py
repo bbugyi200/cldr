@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import re
-from typing import List, cast
+from typing import List, Type, TypeVar, cast
 
 from eris import ErisError, Err, Ok, Result
 from pydantic.dataclasses import dataclass
@@ -13,6 +13,9 @@ from typist import PathLike, literal_to_list
 from ._config import Config
 from ._constants import BULLET_EXPLANATION, KIND_TO_SECTION_MAP, Kind
 from ._tags import TAG_TYPES, Tag
+
+
+Bullet_T = TypeVar("Bullet_T", bound="Bullet")
 
 
 class BulletConfig:
@@ -34,8 +37,11 @@ class Bullet:
 
     @classmethod
     def from_string(
-        cls, cfg: Config, line: str, changelog_dir: PathLike = "changelog"
-    ) -> Result["Bullet", ErisError]:
+        cls: Type["Bullet_T"],
+        cfg: Config,
+        line: str,
+        changelog_dir: PathLike = "changelog",
+    ) -> Result["Bullet_T", ErisError]:
         """TODO"""
         changelog_dir = Path(changelog_dir)
 
