@@ -28,6 +28,7 @@
       'logs': <class 'list'> [
       ],
       'verbose': 0,
+      'version_part_to_bump': 'none',
     },
   }
 ---

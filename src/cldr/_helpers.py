@@ -11,6 +11,7 @@ from pathlib import Path
 import re
 from typing import TYPE_CHECKING, Any, Dict, Iterable, Iterator
 
+from clack import ConfigFile
 from eris import ErisError, Err, Ok, Result
 from logrus import Logger
 import proctor
@@ -155,7 +156,7 @@ def get_info(cfg: Config) -> dict[str, Any]:
         logger.warning("No bullet files found.")
 
     result["config"] = {
-        k: str(v) if isinstance(v, Path) else v
+        k: str(v) if isinstance(v, (ConfigFile, Path)) else v
         for (k, v) in cfg.dict().items()
     }
 

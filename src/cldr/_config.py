@@ -69,6 +69,7 @@ class Config(clack.Config):
     infer_version_part: bool = False
     jira_base_url: Optional[str] = None
     jira_org: Optional[str] = None
+    version_part_to_bump: BumpPart
 
 
 class BuildConfig(Config):

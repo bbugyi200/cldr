@@ -3,4 +3,4 @@
 from typing import Literal
 
 
-BumpPart = Literal["major", "minor", "patch"]
+BumpPart = Literal["major", "minor", "none", "patch"]
