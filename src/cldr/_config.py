@@ -42,19 +42,21 @@ from typing import Any, List, Literal, Optional, Sequence
 import clack
 from typist import literal_to_list
 
+from ._bump import BumpPart
 from ._constants import Kind
 
 
 BuildCommand = Literal["build"]
+BumpCommand = Literal["bump"]
 InfoCommand = Literal["info"]
 NewCommand = Literal["new"]
 Command = Literal[
-    BuildCommand, InfoCommand, NewCommand
+    BuildCommand, BumpCommand, InfoCommand, NewCommand
 ]  # available CLI sub-commands
 
 
 class Config(clack.Config):
-    """TODO"""
+    """Base configuration class."""
 
     command: Command
 
@@ -70,7 +72,7 @@ class Config(clack.Config):
 
 
 class BuildConfig(Config):
-    """TODO"""
+    """Config for the 'build' subcommand."""
 
     command: BuildCommand
 
@@ -80,8 +82,23 @@ class BuildConfig(Config):
     new_version: str
 
 
+class BumpConfig(Config):
+    """Config for the 'bump' subcommand."""
+
+    command: BumpCommand
+
+    # --- ARGS
+    part: BumpPart
+
+
+class InfoConfig(Config):
+    """Config for the 'info' subcommand."""
+
+    command: InfoCommand
+
+
 class NewConfig(Config):
-    """TODO"""
+    """Config for the 'new' subcommand."""
 
     command: NewCommand
 
@@ -93,12 +110,6 @@ class NewConfig(Config):
     bullet_file_name: Optional[str] = None
     commit_changes: bool = True
     tags: Optional[List[str]] = None
-
-
-class InfoConfig(Config):
-    """TODO"""
-
-    command: InfoCommand
 
 
 def clack_parser(argv: Sequence[str]) -> dict[str, Any]:
