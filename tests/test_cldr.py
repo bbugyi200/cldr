@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Iterable, Sequence
 
 from _pytest.capture import CaptureFixture
-from pytest import fixture, mark, param
+from pytest import mark, param
 from syrupy.assertion import SnapshotAssertion as Snapshot
 
 from cldr.__main__ import main as cldr_main
@@ -42,14 +42,6 @@ All notable changes to this project will be documented in this file.
 """
 
 
-@fixture(name="changelog_dir")
-def changelog_dir_fixture(tmp_path: Path) -> Path:
-    """TODO"""
-    result = tmp_path / "changelog"
-    result.mkdir()
-    return result
-
-
 @params(
     "contents",
     [param(CONTENTS1, id="contents1"), param(CONTENTS2, id="contents2")],
@@ -77,6 +69,7 @@ def changelog_dir_fixture(tmp_path: Path) -> Path:
 def test_build(
     snapshot: Snapshot,
     changelog_dir: Path,
+    config_file: Path,
     contents: str,
     bullet: str,
     ec: int,
@@ -91,6 +84,8 @@ def test_build(
     exit_code = cldr_main(
         [
             "",
+            "--config",
+            str(config_file),
             "--changelog-dir",
             str(changelog_dir),
             "build",

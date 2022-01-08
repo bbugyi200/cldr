@@ -164,7 +164,7 @@ class JiraIssue(TagMixin):
         if cfg.jira_base_url is None:
             return Err(
                 "The 'jira_base_url' configuration option MUST be set in order"
-                " to use the {self.__class__.__name__} changelog bullet tag."
+                f" to use the {self.__class__.__name__} changelog bullet tag."
             )
 
         if tag[0].isdigit():

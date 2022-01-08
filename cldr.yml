@@ -10,9 +10,6 @@ github_repo: "https://github.com/bbugyi200/cldr"
 # changelog bullets will be rendered for the next release?
 infer_version_part: true
 
-# Fake Jira base URL (for tests)... Remove ASAP.
-jira_base_url: "https://jira.prod.company.com"
-
 # Update the 'version_part_to_bump' option via `bumper {patch | minor | major}`
 # when you want to release a new version of this project.
 version_part_to_bump: "none"
