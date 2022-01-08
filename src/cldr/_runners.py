@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections import OrderedDict
 import datetime as dt
 import itertools as it
 import json
@@ -239,7 +238,7 @@ def run_info(cfg: InfoConfig) -> int:
 
         for bullet in sorted(bullets, key=attrgetter("kind")):
             data["bullets"].append(
-                OrderedDict(
+                dict(
                     kind=bullet.kind,
                     body=bullet.body,
                     tags=[tag.tag for tag in bullet.tags],
@@ -248,5 +247,7 @@ def run_info(cfg: InfoConfig) -> int:
     else:
         logger.warning("No bullet files found.")
 
-    print(json.dumps(OrderedDict(sorted(data.items()))))
+    data["config"] = {k: str(v) for (k, v) in cfg.dict().items()}
+
+    print(json.dumps(data, sort_keys=True))
     return 0
