@@ -1,4 +1,7 @@
-"""Contains the clack.MainType function."""
+"""Contains the main() function constructed by clack.
+
+This function is used by setuptools as the main entry point for this program.
+"""
 
 from __future__ import annotations
 
