@@ -7,8 +7,9 @@ import json
 from pathlib import Path
 import subprocess as sp
 import sys
-from typing import Any, Callable, List, Optional
+from typing import List, Optional
 
+from clack.types import ClackRunner
 from eris import Err
 from logrus import Logger
 import proctor
@@ -28,13 +29,11 @@ from ._helpers import (
 
 logger = Logger(__name__)
 
-Runner = Callable[[Any], int]
-
 # The ALL_RUNNERS list is populated later by the `register_tag` decorator.
-ALL_RUNNERS: List[Runner] = []
+ALL_RUNNERS: List[ClackRunner] = []
 
 
-def register_runner(runner: Runner) -> Runner:
+def register_runner(runner: ClackRunner) -> ClackRunner:
     """Register a clack runner function."""
     ALL_RUNNERS.append(runner)
     return runner
