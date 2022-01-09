@@ -5,7 +5,7 @@ from __future__ import annotations
 import datetime as dt
 from pathlib import Path
 
-from clack import ConfigFile
+from clack.types import ClackConfigFile
 from pytest import mark, param
 from syrupy.assertion import SnapshotAssertion as Snapshot
 
@@ -69,7 +69,7 @@ All notable changes to this project will be documented in this file.
 def test_build(
     snapshot: Snapshot,
     changelog_dir: Path,
-    default_config_file: ConfigFile,
+    default_config_file: ClackConfigFile,
     contents: str,
     bullet: str,
     ec: int,

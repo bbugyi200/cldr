@@ -8,8 +8,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from clack import ConfigFile
+from clack.types import ClackConfigFile
 from pytest import fixture
+
 
 if TYPE_CHECKING:  # fixes pytest warning
     from clack.pytest_plugin import MakeConfigFile
@@ -36,6 +37,6 @@ def changelog_dir_fixture(tmp_path: Path) -> Path:
 @fixture(name="default_config_file")
 def default_config_file_fixture(
     make_config_file: MakeConfigFile,
-) -> ConfigFile:
+) -> ClackConfigFile:
     """Returns the path to a config file with default contents."""
     return make_config_file("cldr_test_config", **DEFAULT_CONFIG)
